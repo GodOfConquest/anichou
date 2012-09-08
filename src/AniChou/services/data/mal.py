@@ -4,7 +4,7 @@
 # Copyright (c) 2009 Andre 'Necrotex' Peiffer
 # See COPYING for details
 
-""" data.py -- core data schemas
+""" mal.py -- core data schemas
 
 This module contains the core data schemas used in the applicaiton and in the
 communication with the server.
@@ -14,24 +14,25 @@ from datetime import date, datetime
 
 ## ANIME schema of the xml data the MyAnimeList server sends
 mal_anime_data_schema = {
-	'series_animedb_id': int,
-	'series_title': unicode,
-	'series_synonyms': unicode,
-	'series_type': int,
-	'series_episodes': int,
-	'series_status': int,
-	'series_start': date,
-	'series_end': date,
-	'series_image': unicode,
-	'my_id': int,
-	'my_watched_episodes': int,   # push argument
-	'my_start_date': date,
-	'my_finish_date': date,
-	'my_score': int,   # push argument
-	'my_status': int,   # push argument
-	'my_rewatching': int,
-	'my_rewatching_ep': int,
-	'my_last_updated': datetime}   # sync variable
+    'series_animedb_id': int,
+    'series_title': unicode,
+    'series_synonyms': unicode,
+    'series_type': int,
+    'series_episodes': int,
+    'series_status': int,
+    'series_start': date,
+    'series_end': date,
+    'series_image': unicode,
+    'my_id': int,
+    'my_watched_episodes': int,   # push argument
+    'my_start_date': date,
+    'my_finish_date': date,
+    'my_score': int,   # push argument
+    'my_status': int,   # push argument
+    'my_rewatching': int,
+    'my_rewatching_ep': int,
+    'my_last_updated': datetime}   # sync variable
+
 
 ## Here is a sample of the data representation the myanimelist module produces,
 ## and which is used in the application and is also sent to the persistent data
@@ -87,26 +88,26 @@ mal_anime_data_schema = {
 
 ## MANGA schema of the xml data the MyAnimeList server sends
 mal_manga_data_schema = {
-	'series_mangadb_id': int,
-	'series_title': unicode,
-	'series_synonyms': unicode,
-	'series_type': int,
-	'series_chapters': int,
+    'series_mangadb_id': int,
+    'series_title': unicode,
+    'series_synonyms': unicode,
+    'series_type': int,
+    'series_chapters': int,
     'series_volumes': int,
-	'series_status': int,
-	'series_start': date,
-	'series_end': date,
-	'series_image': unicode,
-	'my_id': int,
-	'my_read_chapters': int,   # push argument
+    'series_status': int,
+    'series_start': date,
+    'series_end': date,
+    'series_image': unicode,
+    'my_id': int,
+    'my_read_chapters': int,   # push argument
     'my_read_volumes': int,   # push argument
-	'my_start_date': date,
-	'my_finish_date': date,
-	'my_score': int,   # push argument
-	'my_status': int,   # push argument
-	'my_rereadingg': int,
-	'my_rereading_chap': int,
-	'my_last_updated': datetime}   # sync variable
+    'my_start_date': date,
+    'my_finish_date': date,
+    'my_score': int,   # push argument
+    'my_status': int,   # push argument
+    'my_rereadingg': int,
+    'my_rereading_chap': int,
+    'my_last_updated': datetime}   # sync variable
 
 
 ## Anime Datastructure for the MAL API
@@ -154,23 +155,23 @@ mal_api_manga_schema = {
 
 # Here is the reverse mapping of the above for widget adressing and similar
 STATUS = {
-	1: 'watching',
-	2: 'completed',
-	3: 'onhold',
-	4: 'dropped',
-	6: 'plantowatch' }
+    1: 'watching',
+    2: 'completed',
+    3: 'onhold',
+    4: 'dropped',
+    6: 'plantowatch' }
 
 # This is the same as above but with capitals and spaces for display purposes
 STATUSB = {
-	1: 'Watching',
-	2: 'Completed',
-	3: 'On Hold',
-	4: 'Dropped',
-	6: 'Plan To Watch' }
+    1: 'Watching',
+    2: 'Completed',
+    3: 'On Hold',
+    4: 'Dropped',
+    6: 'Plan To Watch' }
 
 STATUS_REV = {
-	'Watching': 1,
-	'Completed': 2,
-	'On Hold': 3,
-	'Dropped': 4,
-	'Plan To Watch': 6 }
+    'Watching': 1,
+    'Completed': 2,
+    'On Hold': 3,
+    'Dropped': 4,
+    'Plan To Watch': 6 }

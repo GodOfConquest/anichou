@@ -7,40 +7,40 @@
 #
 # Copyright (c) 2009 Sebastian Bartos
 # Copyright (c) 2009 Andre 'Necrotex' Peiffer
+# Copyright (c) 2012 Sir Anthony
 #
 # License: GPL v3, see COPYING file for details
 # =========================================================================== #
 
-import os, sys
-import AniChou.globs, \
-		AniChou.config, \
-		AniChou.myanimelist
-		
+import os
+
+from AniChou import settings
+from AniChou.config import BaseConfig
+from AniChou.services import Manager
+
+
+
 
 ## FIRST RUN STUFF
 
 # Check for AniChou home path existence
 # Create it if not existient
-if not os.path.isdir(AniChou.globs.ac_user_path):
-	os.mkdir(AniChou.globs.ac_user_path)
+if not os.path.isdir(settings.USER_PATH):
+    os.mkdir(settings.USER_PATH)
 
 
 # Run command line option parser and configuration parser
-config = AniChou.config.ac_config()
+cfg = BaseConfig()
 
-## IMPORT PLUGIN MODULE
-# - todo
-
-# The whole application uses only this single instance of anime_data.
-data = AniChou.myanimelist.anime_data(config = config)
+service = Manager(config=cfg)
 
 ## RUN THE APPLICATION
-# gtkmain.main(config, mal_anime_data)
-if config.get('startup', 'gui'):
+if cfg.startup.get('gui'):
     ## ONLY RUN GUI IF CLI OPTION NOT SET ##
     import AniChou.gtkctl
-    gui = AniChou.gtkctl.guictl(data, config)
+    gui = AniChou.gtkctl.guictl(service, cfg)
 else:
-	print 'no-gui option set'
+    print 'no-gui option set'
+
 
 print 'Shutting down, bye bye..'
