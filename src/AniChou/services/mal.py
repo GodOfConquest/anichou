@@ -2,10 +2,9 @@
 import re
 import urlparse
 import urllib
-import urllib2
-from datetime import date, datetime
+import BeautifulSoup
 
-from AniChou.lib.beautifulsoup import BeautifulSoup
+from datetime import date, datetime
 from AniChou.services.default import DefaultService
 from AniChou.services.data.mal import mal_anime_data_schema
 
@@ -28,20 +27,12 @@ class Mal(DefaultService):
                 'cookie': 1,
                 'sublogin': 'Login'})
 
-        # phrase login request (to perform a POST request)
-        login_request = urllib2.Request(login_url, login_data, self.headers)
-
         # try to connect and authenticate with MyAnimeList server
-        try:
-            login_response = urllib2.urlopen(login_request).read()
-        except urllib2.URLError, e:
-            if hasattr(e, 'reason'):
-                print u'Failed to reach myanimelist.net.'
-                print u'Reason: ', e.reason
-            elif hasattr(e, 'code'):
-                print u'The server couldn\'t fulfill the request.'
-                print u'Error code: ', e.code
+        login_response = self.sendRequest(login_url, login_data)
+        if not login_response:
             return False
+
+        login_response = login_response.read()
 
         # check if login was successful
         if not login_response.count('<div class="badresult">'):
@@ -89,7 +80,7 @@ class Mal(DefaultService):
             fetch_response = open(self.mirror, 'rb')
         except:
             # TODO whatever error open(None) raises.
-            fetch_response = urllib2.urlopen(fetch_url)
+            fetch_response = self.opener.open(fetch_url)
         # BeautifulSoup could do the read() and unicode-conversion, if it
         # weren't for the illegal characters, as it internally doesn't
         # use 'replace'.

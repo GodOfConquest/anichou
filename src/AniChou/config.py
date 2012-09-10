@@ -13,7 +13,7 @@ def usage(prog):
     Takes an application name to display.
     """
     # Won't strip indentation.
-    print """
+    logging.info("""
     Usage: %s [options]
 
     Options:
@@ -28,7 +28,7 @@ def usage(prog):
       -a              disable login and site updates
       -f <file>       load XML from file instead of the server
 
-    """ % prog
+    """, prog)
 
 
 def options(prog, version, argv):
@@ -48,13 +48,13 @@ def options(prog, version, argv):
         opts, args = getopt.getopt(argv, "hdtc:arf:", ["version", "help",
             "no-gui", "tracker", "config=", "anonymous", "reset"])
     except getopt.GetoptError, err:
-        print unicode(err)
+        logging.error(err)
         usage(prog)
         sys.exit(2)
     given = {}
     for o, a in opts:
         if o == "--version":
-            print prog, version
+            logging.info("%s %s", prog, version)
             sys.exit()
         elif o in ("-h", "--help"):
             usage(prog)

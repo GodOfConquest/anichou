@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="data">
+    <file>ac.ico</file>
+    <file>acbt.png</file>
+    <file>anichou16.png</file>
+    <file>anichoubig.jpg</file>
+    <file>logoGlass.png</file>
+    <file>mal.ico</file>
+    <file>sync.ico</file>
+  </qresource>
+</RCC>

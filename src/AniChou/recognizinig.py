@@ -8,6 +8,7 @@ import re
 import cPickle
 import difflib
 from os import path
+from kaa import metadata
 
 from AniChou import settings
 
@@ -82,7 +83,13 @@ class engine:
     def __filter(self):
         """Get rid of hashtags, subgroup, codec and such"""
 
-        filename = path.basename(self.filename)
+        meta = metadata(self.filename)
+
+        #TODO: full usage of metadata.
+        if meta.title:
+            filename = meta.title
+        else:
+            filename = path.basename(self.filename)
 
         # Should match all between [ , ], (, ) and gets rid of the file extension.
         # Monser RegEx ftw! :D

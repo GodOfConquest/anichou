@@ -16,6 +16,7 @@ LOCAL_ANIME_SCHEMA = {
     'synonyms': unicode,
     'type': int,
     'episodes': int,
+    'sources': list,
     'series_status': int,
     'series_start': date,
     'series_end': date,
@@ -40,14 +41,6 @@ LOCAL_STATUS = [
     (4, u'Dropped'),
     (5, u'Hold'),
     (6, u'Partially watched'),
-]
-
-LOCAL_STATUS_TABS = [
-    (1, u'watching'),
-    (2, u'plantowatch'),
-    (3, u'completed'),
-    (4, u'dropped'),
-    (5, u'onhold'),
 ]
 
 LOCAL_STATUS_DICT = dict(LOCAL_STATUS)

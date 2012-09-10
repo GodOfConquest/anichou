@@ -11,6 +11,7 @@
 # =========================================================================== #
 
 import os, platform, subprocess
+import logging
 
 
 class OpenFileListLinMac(object):
@@ -207,6 +208,6 @@ this_platform = platform.system()
 if this_platform == 'Linux' or this_platform == 'Darwin':
     get_playing = globals()['get_playing_linmac']
 else:
-    print 'Playtracking on your platform %s is currently not supported, sorry.'\
-        % this_platform
+    logging.warn('Playtracking on your platform %s is currently not supported, sorry.',
+         this_platform)
 

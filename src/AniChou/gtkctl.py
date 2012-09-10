@@ -117,6 +117,7 @@ class glade_handlers(object):
             WIDGETS['playtracker_on_start'].set_active(new)
             MODCTL.cfg.save()
 
+
 class widget_wrapper(object):
     """
     Load and set up the glade user interface and connect the signal hanlers.
@@ -512,8 +513,8 @@ class guictl(object):
 
     def idle_cb(self):
         if WIDGETS['statusbar_now_playing'].flags() & gtk.VISIBLE:
-            track = players.get_playing(
-                ['mplayer', 'totem'], [self.cfg.search_dir.get('dir1')])
+            track = players.get_playing(settings.PLAYERS,
+                        self.cfg.search_dir.values())
             for key in track.keys():
                 e = recognizinig.engine(key, self.manager.db)
                 m = e.match()

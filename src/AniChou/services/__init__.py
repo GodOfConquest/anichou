@@ -1,6 +1,10 @@
 
+import logging
+
 from AniChou import settings
+from AniChou.gui import notify
 from AniChou.services.default import DefaultService
+
 
 
 def chooser(name, classname=None):
@@ -8,7 +12,7 @@ def chooser(name, classname=None):
         service = getattr(__import__('AniChou.services.%s' % name,
                 fromlist=[name,]), classname or name.capitalize())
     except ImportError, e:
-        print unicode(e)
+        logging.error(e)
         service = DefaultService
     return service
 
@@ -37,6 +41,16 @@ class Manager(object):
             self.services.remove(s)
 
     def sync(self):
+        for name in self.syncNext():
+            if type(name) == bool:
+                if not name:
+                    notify('Syncing failed..')
+                else:
+                    notify('Syncing Done.')
+            else:
+                notify('Syncing with {0}..'.format(name))
+
+    def syncNext(self):
         """
         This is iterator through all enabled services
         """
@@ -44,7 +58,7 @@ class Manager(object):
             yield service.name
             if not service.sync():
                 yield False
-        yield u'Done'
+        yield True
 
     def save(self):
         self.main.save()
@@ -56,4 +70,5 @@ class Manager(object):
 
     def updateConfig(self):
         """Reload config"""
-        pass
+        for service in self.services:
+            service.setConfig(self.config)

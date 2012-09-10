@@ -13,15 +13,27 @@
 # =========================================================================== #
 
 import os
+import logging.config
 
 from AniChou import settings
 from AniChou.config import BaseConfig
 from AniChou.services import Manager
+from AniChou import gui
+
+try:
+    logging.config.dictConfig(settings.LOG_CONFIG)
+except AttributeError:
+    #python < 2.7
+    import ConfigParser
+    logging.config.fileConfig(settings.LOG_CONFIG_PATH)
+    fileHandler = logging.handlers.RotatingFileHandler(
+        settings.LOG_PATH, mode='a', maxBytes=10000, backupCount=5)
+    logger = logging.getLogger('root')
+    logger.addHandler(fileHandler)
+    fileHandler.setFormatter(logging.Formatter(
+        settings.LOG_ERROR_FORMAT, settings.LOG_ERROR_DATE))
 
 
-
-
-## FIRST RUN STUFF
 
 # Check for AniChou home path existence
 # Create it if not existient
@@ -37,10 +49,10 @@ service = Manager(config=cfg)
 ## RUN THE APPLICATION
 if cfg.startup.get('gui'):
     ## ONLY RUN GUI IF CLI OPTION NOT SET ##
-    import AniChou.gtkctl
-    gui = AniChou.gtkctl.guictl(service, cfg)
+    gui.Qt(service, cfg)
+    #import AniChou.gtkctl
+    #gui = AniChou.gtkctl.guictl(service, cfg)
 else:
-    print 'no-gui option set'
+    logging.warn('no-gui option set')
 
-
-print 'Shutting down, bye bye..'
+logging.info('Shutting down, bye bye..')

@@ -1,4 +1,5 @@
 
+import logging
 import urllib2
 from cookielib import LWPCookieJar
 
@@ -20,17 +21,12 @@ class DefaultService(object):
         titles as keys and and fields form mal_anime_data_schema as dict data.
     """
 
-    headers = {
-        'User-Agent': u'Anichou {0}'.format(settings.VERSION),
-        'Content-Type': 'application/x-www-form-urlencoded'
-    }
-
     name = "Dummy service"
 
     def __init__(self, **kw):
         """
         Setup credentials, read local data and setup network connection
-        environment. Optionally sync with MAL on startup.
+        environment. Optionally sync with service on startup.
 
         Does not take positional arguments. Keyword arguments can either be
         given individually (username, password, initsync) or as an
@@ -41,32 +37,37 @@ class DefaultService(object):
         # When the architecture stabilizes, switch to config as the sole
         # positional argument, and retain it instead of copying parts.
         # That would also enable reconfiguration at runtime.
-        name = self.__class__.__name__
-        self.base_config  = kw.get('config', Config())
-        config = self.base_config.get(name, {})
-        self.username = kw.get('username', config.get('username'))
-        self.password = kw.get('password', config.get('password'))
-        initsync      = kw.get('initsync', self.base_config.startup.get('sync'))
-        self.anonymous = bool(config.get('login', True))
-        self.mirror = config.get('mirror', None)
+        self.setConfig(kw.get('config', Config()), **kw)
 
         # pull the local DB as a dictionary object
-        #self.db = {}
         self.local_db = local_database()
         self.db = self.local_db.get_db()
 
         # setup cookie handler
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(LWPCookieJar()))
-        urllib2.install_opener(opener)
+        self.opener = urllib2.build_opener(
+                        urllib2.HTTPCookieProcessor(LWPCookieJar()))
+        self.opener.addheaders = [('User-Agent', u'Anichou/{0} {1}'.format(
+                        self.__class__.__name__, settings.VERSION))]
 
-        if initsync:
+        if self.initsync:
             self.sync()
+
+    def setConfig(self, cfg, **kwargs):
+        """Setup self variables from config"""
+        name = self.__class__.__name__
+        self.base_config  = cfg
+        config = self.base_config.get(name, {})
+        self.username = kwargs.get('username', config.get('username'))
+        self.password = kwargs.get('password', config.get('password'))
+        self.initsync = kwargs.get('initsync', self.base_config.startup.get('sync'))
+        self.anonymous = bool(config.get('login', True))
+        self.mirror = config.get('mirror', None)
 
     def stop(self):
         """
         Actions before service will be stopped.
         """
-        print "Service {0} was disabled".format(self.name)
+        logging.info("Service %s was disabled", self.name)
 
     def getUrl():
         raise NotImplementedError('This function must be implemented in subclass')
@@ -91,7 +92,7 @@ class DefaultService(object):
         """
         # Three way switch: login (un)successfull or don't even try.
         if not self.anonymous and not self.login():
-            print 'Login failed..'
+            logging.warn('Login to %s server failed..', self.name)
             return False
 
         remoteAnime_db = self.getList()
@@ -104,7 +105,7 @@ class DefaultService(object):
             if not self.anonymous:
                 self.pushList(local_updates)
             else:
-                print 'Warning! Your local data goes ouf of sync'
+                logging.warn('Your local data goes ouf of sync')
 
             # update local anime list with changes
             for key in deleted_keys:
@@ -137,6 +138,18 @@ class DefaultService(object):
         self.local_db.set_db(self.db)
         return self.db
 
+    def sendRequest(self, link, data):
+        try:
+            response = self.opener.open(link, data)
+        except urllib2.URLError, e:
+            if hasattr(e, 'reason'):
+                logging.error(u'Failed to reach %s server. Reason: %s',
+                    self.name, e.reason)
+            elif hasattr(e, 'code'):
+                logging.error(u'The server couldn\'t fulfill the request. Error code %d',
+                    e.code)
+            return False
+        return response
 
     def login(self):
         """
@@ -182,17 +195,8 @@ class DefaultService(object):
         """
         for anime in local_updates.values():
             postdata = urllib.urlencode(self.makePost(anime))
-            request = urllib2.Request(self.postURL(anime), postdata, self.headers)
-            try:
-                # push update request
-                response = urllib2.urlopen(push_request)
-            except URLError, e:
-                if hasattr(e, 'reason'):
-                    print u'We failed to reach a server.'
-                    print u'Reason: ', unicode(e.reason)
-                elif hasattr(e, 'code'):
-                    print u'The server couldn\'t fulfill the request.'
-                    print u'Error code: ', unicode(e.code)
+            response = self.sendRequest(self.postURL(anime), postdata)
+            if not response:
                 return False
             time.sleep(settings.TIMEOUT)
         return True
