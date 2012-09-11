@@ -6,9 +6,9 @@ from PyQt4 import QtCore, QtGui
 
 abstract_classes = []
 
-export_classes = ['ACStatusTab']
+export_classes = ['ACStatusTab', ]
 
-extern_classes = []
+extern_classes = ['ACTextDialog', 'ACAboutDialog']
 
 
 def widget_factory(name):

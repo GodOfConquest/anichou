@@ -1,9 +1,10 @@
 *.pyc
 *.pyo
-mal.pkl
 build/
 dist/
 *.swp
 *._swp
 *.bak
 *~
+src/AniChou/gui/widgets/ui/*.py
+src/AniChou/gui/*_rc.py

@@ -92,7 +92,10 @@
   </widget>
   <action name="actionQuit">
    <property name="text">
-    <string>&amp;Quit</string>
+    <string>Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F4</string>
    </property>
   </action>
   <action name="actionPlaybar">
@@ -108,7 +111,7 @@
   </action>
   <action name="actionParameters">
    <property name="text">
-    <string>&amp;Parameters</string>
+    <string>Parameters</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -117,7 +120,7 @@
      <normaloff>:/data/acbt.png</normaloff>:/data/acbt.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;About</string>
+    <string>About</string>
    </property>
   </action>
   <action name="actionSync">
@@ -130,6 +133,9 @@
    </property>
    <property name="toolTip">
     <string>Synchronize</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>
@@ -155,7 +161,7 @@
   </connection>
   <connection>
    <sender>actionQuit</sender>
-   <signal>triggered()</signal>
+   <signal>activated()</signal>
    <receiver>AniChou</receiver>
    <slot>close()</slot>
    <hints>
@@ -185,9 +191,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionAbout</sender>
+   <signal>activated()</signal>
+   <receiver>AniChou</receiver>
+   <slot>showAboutDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>sync()</slot>
   <slot>toggleTracker(bool)</slot>
+  <slot>showAboutDialog()</slot>
  </slots>
 </ui>

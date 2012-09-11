@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Main.ui'
 #
-# Created: Tue Sep 11 00:09:37 2012
+# Created: Tue Sep 11 23:01:45 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -82,8 +82,9 @@ class Ui_AniChou(object):
         self.retranslateUi(AniChou)
         self.statusTabs.setCurrentIndex(-1)
         QtCore.QObject.connect(self.actionPlaybar, QtCore.SIGNAL(_fromUtf8("triggered(bool)")), AniChou.toggleTracker)
-        QtCore.QObject.connect(self.actionQuit, QtCore.SIGNAL(_fromUtf8("triggered()")), AniChou.close)
+        QtCore.QObject.connect(self.actionQuit, QtCore.SIGNAL(_fromUtf8("activated()")), AniChou.close)
         QtCore.QObject.connect(self.actionSync, QtCore.SIGNAL(_fromUtf8("activated()")), AniChou.sync)
+        QtCore.QObject.connect(self.actionAbout, QtCore.SIGNAL(_fromUtf8("activated()")), AniChou.showAboutDialog)
         QtCore.QMetaObject.connectSlotsByName(AniChou)
 
     def retranslateUi(self, AniChou):
@@ -92,11 +93,13 @@ class Ui_AniChou(object):
         self.menuEdit.setTitle(QtGui.QApplication.translate("AniChou", "&Edit", None, QtGui.QApplication.UnicodeUTF8))
         self.menuHelp.setTitle(QtGui.QApplication.translate("AniChou", "&Help", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar.setWindowTitle(QtGui.QApplication.translate("AniChou", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionQuit.setText(QtGui.QApplication.translate("AniChou", "&Quit", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionQuit.setText(QtGui.QApplication.translate("AniChou", "Quit", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionQuit.setShortcut(QtGui.QApplication.translate("AniChou", "Alt+F4", None, QtGui.QApplication.UnicodeUTF8))
         self.actionPlaybar.setText(QtGui.QApplication.translate("AniChou", "Playbar", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionParameters.setText(QtGui.QApplication.translate("AniChou", "&Parameters", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionAbout.setText(QtGui.QApplication.translate("AniChou", "&About", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionParameters.setText(QtGui.QApplication.translate("AniChou", "Parameters", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionAbout.setText(QtGui.QApplication.translate("AniChou", "About", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSync.setText(QtGui.QApplication.translate("AniChou", "S&ynchronize", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSync.setToolTip(QtGui.QApplication.translate("AniChou", "Synchronize", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSync.setShortcut(QtGui.QApplication.translate("AniChou", "Ctrl+Y", None, QtGui.QApplication.UnicodeUTF8))
 
-import images_rc
+import AniChou.gui.images_rc

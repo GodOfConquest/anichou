@@ -26,7 +26,7 @@ os.chdir(docdir)
 os.environ['PYTHONPATH'] = moduledir
 
 modules = \
-		['gtkctl', 'myanimelist', 'config', 'data', 'players', 'recognizinig',
+		['config', 'data', 'players', 'recognizinig',
 		'globs', 'database']
 
 for module in modules:

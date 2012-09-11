@@ -5,7 +5,7 @@ from AniChou import players, recognizinig
 from AniChou import settings
 from AniChou.gui.Main import Ui_AniChou
 from AniChou.services.data.base import LOCAL_STATUS
-from AniChou.gui.widgets import ACStatusTab
+from AniChou.gui.widgets import ACStatusTab, ACAboutDialog
 
 
 def get_app(argv):
@@ -120,3 +120,15 @@ class Main(QtGui.QMainWindow):
         for i in range(0, self._stabs.count()):
             self._stabs.widget(i).updateData(statuses.get(i+1, {}))
 
+
+    @QtCore.pyqtSlot()
+    def sync(self):
+        self.manager.sync()
+        self.updateFromDB()
+        QtCore.QTimer.singleShot(5000, self, QtCore.SLOT('clearMessage()'))
+
+
+    @QtCore.pyqtSlot()
+    def showAboutDialog(self):
+        about = ACAboutDialog(self)
+        QtGui.QDialog.show(about)
