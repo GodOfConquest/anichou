@@ -3,7 +3,7 @@ import logging
 import urllib2
 from cookielib import LWPCookieJar
 
-from AniChou.config import Config
+from AniChou.config import BaseConfig
 from AniChou.database import db as local_database
 from AniChou import settings
 
@@ -23,7 +23,7 @@ class DefaultService(object):
 
     name = "Dummy service"
 
-    def __init__(self, **kw):
+    def __init__(self, config=None, **kw):
         """
         Setup credentials, read local data and setup network connection
         environment. Optionally sync with service on startup.
@@ -37,7 +37,7 @@ class DefaultService(object):
         # When the architecture stabilizes, switch to config as the sole
         # positional argument, and retain it instead of copying parts.
         # That would also enable reconfiguration at runtime.
-        self.setConfig(kw.get('config', Config()), **kw)
+        self.setConfig(config or BaseConfig(), **kw)
 
         # pull the local DB as a dictionary object
         self.local_db = local_database()
@@ -56,7 +56,7 @@ class DefaultService(object):
         """Setup self variables from config"""
         name = self.__class__.__name__
         self.base_config  = cfg
-        config = self.base_config.get(name, {})
+        config = getattr(self.base_config.services, name.lower())
         self.username = kwargs.get('username', config.get('username'))
         self.password = kwargs.get('password', config.get('password'))
         self.initsync = kwargs.get('initsync', self.base_config.startup.get('sync'))

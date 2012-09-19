@@ -207,10 +207,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionParameters</sender>
+   <signal>activated()</signal>
+   <receiver>AniChou</receiver>
+   <slot>showPreferencesDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>sync()</slot>
   <slot>toggleTracker(bool)</slot>
   <slot>showAboutDialog()</slot>
+  <slot>showPreferencesDialog()</slot>
  </slots>
 </ui>

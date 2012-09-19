@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Main.ui'
 #
-# Created: Tue Sep 11 23:01:45 2012
+# Created: Tue Sep 18 22:49:08 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -85,6 +85,7 @@ class Ui_AniChou(object):
         QtCore.QObject.connect(self.actionQuit, QtCore.SIGNAL(_fromUtf8("activated()")), AniChou.close)
         QtCore.QObject.connect(self.actionSync, QtCore.SIGNAL(_fromUtf8("activated()")), AniChou.sync)
         QtCore.QObject.connect(self.actionAbout, QtCore.SIGNAL(_fromUtf8("activated()")), AniChou.showAboutDialog)
+        QtCore.QObject.connect(self.actionParameters, QtCore.SIGNAL(_fromUtf8("activated()")), AniChou.showPreferencesDialog)
         QtCore.QMetaObject.connectSlotsByName(AniChou)
 
     def retranslateUi(self, AniChou):

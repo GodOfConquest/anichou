@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ACPreferencesDialog</class>
+ <widget class="QDialog" name="ACPreferencesDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>433</width>
+    <height>279</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>AniChou preferences</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="startup">
+     <property name="title">
+      <string>Startup options</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="sync">
+        <property name="text">
+         <string>Syncronize on startup</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="tracker">
+        <property name="text">
+         <string>Run Playtracker</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ACComboBoxWidget" name="Default_service" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="Dirs">
+     <property name="title">
+      <string>Tracker search directories</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="ACDirectoryListWidget" name="searchDirs" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>270</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QPushButton" name="addButton">
+          <property name="text">
+           <string>Add</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removeButton">
+          <property name="text">
+           <string>Remove</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="services">
+     <property name="tabPosition">
+      <enum>QTabWidget::South</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
+     <property name="currentIndex">
+      <number>-1</number>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ACDirectoryListWidget</class>
+   <extends>QWidget</extends>
+   <header>AniChou.gui.widgets</header>
+   <container>1</container>
+   <slots>
+    <signal>valueChanged()</signal>
+    <slot>chooseItem()</slot>
+    <slot>removeCurrent()</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>ACComboBoxWidget</class>
+   <extends>QWidget</extends>
+   <header>AniChou.gui.widgets</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>sync</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>ACPreferencesDialog</receiver>
+   <slot>saveConfig()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>39</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>14</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tracker</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>ACPreferencesDialog</receiver>
+   <slot>saveConfig()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>61</x>
+     <y>66</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>5</x>
+     <y>73</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>addButton</sender>
+   <signal>clicked()</signal>
+   <receiver>searchDirs</receiver>
+   <slot>chooseItem()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>329</x>
+     <y>146</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>187</x>
+     <y>176</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>removeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>searchDirs</receiver>
+   <slot>removeCurrent()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>180</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>251</x>
+     <y>203</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchDirs</sender>
+   <signal>valueChanged()</signal>
+   <receiver>ACPreferencesDialog</receiver>
+   <slot>saveConfig()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>78</x>
+     <y>139</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>129</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>saveConfig()</slot>
+ </slots>
+</ui>

@@ -23,10 +23,10 @@ def usage(prog):
       -t, --tracker   enable play-tracker
       -c <file>       use an alternative configuration file
       -r              overwrite config with default values
+      -f <file>       load data from file (Not supported)
 
     Developers only:
       -a              disable login and site updates
-      -f <file>       load XML from file instead of the server
 
     """, prog)
 
@@ -69,25 +69,9 @@ def options(prog, version, argv):
             given.setdefault("login", False)
         elif o == "-r":
             given.setdefault(None, {})["reset"] = True
-        elif o == "-f":
-            given.setdefault("mal", {})["mirror"] = a
         else:
             assert False, "getopt knew more than if"
     return given
-
-
-default_opts = {
-    'startup': {
-        'gui': True,
-        'sync': False,
-        'tracker': False
-    },
-    'search_dir': {
-        'dir1': os.path.expanduser('~')
-    },
-}
-
-run_opts = options(os.path.basename(sys.argv[0]), settings.VERSION, sys.argv[1:])
 
 
 class Config(dict):
@@ -109,7 +93,28 @@ class Config(dict):
         if self.__dict__.has_key(item):
             dict.__setattr__(self, item, value)
         else:
-            self.__setitem__(item, value)
+            if isinstance(value, dict):
+                self.__setitem__(item, Config(value))
+            else:
+                self.__setitem__(item, value)
+
+
+default_opts = {
+    'startup': {
+        'gui': True,
+        'sync': False,
+        'tracker': False,
+        'last_dir': os.path.expanduser('~'),
+    },
+    'services': Config({
+        'default': settings.DEFAULT_SERVICE
+    }),
+    'search_dirs': [
+        os.path.expanduser('~'),
+    ],
+}
+
+run_opts = options(os.path.basename(sys.argv[0]), settings.VERSION, sys.argv[1:])
 
 
 class BaseConfig(Config):
@@ -139,5 +144,5 @@ class BaseConfig(Config):
             pass
         else:
             d = json.load(stream)
-            for key in d.keys():
-                setattr(self, key, d[key])
+            for key, value in d.items():
+                setattr(self, key, value)

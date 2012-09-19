@@ -5,8 +5,10 @@ from AniChou import players, recognizinig
 from AniChou import settings
 from AniChou.gui.Main import Ui_AniChou
 from AniChou.services.data.base import LOCAL_STATUS
-from AniChou.gui.widgets import ACStatusTab, ACAboutDialog
+from AniChou.gui.widgets import ( ACStatusTab, ACAboutDialog,
+                                  ACPreferencesDialog )
 
+__all__ = ['get_app', 'Main']
 
 def get_app(argv):
     return QtGui.QApplication(argv)
@@ -131,4 +133,9 @@ class Main(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def showAboutDialog(self):
         about = ACAboutDialog(self)
-        QtGui.QDialog.show(about)
+        about.show()
+
+    @QtCore.pyqtSlot()
+    def showPreferencesDialog(self):
+        pref = ACPreferencesDialog(self)
+        pref.show()

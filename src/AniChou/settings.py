@@ -47,6 +47,7 @@ LOG_CONFIG = {'version': 1,
 DATA_PATH = path.join(USER_PATH, 'ac.dat')
 
 DEFAULT_SERVICE = 'mal'
+SERVICES = ['mal']
 
 # Plugin path
 PLUGIN_PATH = path.join(USER_PATH, 'plugins')
