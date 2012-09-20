@@ -12,28 +12,29 @@
 # License: GPL v3, see COPYING file for details
 # =========================================================================== #
 
-import os
-import logging.config
+import os, sys
 
+# Load logging system
+import logging.config
 from AniChou import settings
-from AniChou.config import BaseConfig
-from AniChou.services import Manager
-from AniChou import gui
 
 try:
     logging.config.dictConfig(settings.LOG_CONFIG)
 except AttributeError:
     #python < 2.7
-    import ConfigParser
     logging.config.fileConfig(settings.LOG_CONFIG_PATH)
     fileHandler = logging.handlers.RotatingFileHandler(
         settings.LOG_PATH, mode='a', maxBytes=10000, backupCount=5)
-    logger = logging.getLogger('root')
-    logger.addHandler(fileHandler)
     fileHandler.setFormatter(logging.Formatter(
         settings.LOG_ERROR_FORMAT, settings.LOG_ERROR_DATE))
+    logger = logging.getLogger('')
+    logger.addHandler(fileHandler)
+    logger.setLevel(logging.WARNING)
 
 
+from AniChou import gui
+from AniChou.config import BaseConfig
+from AniChou.services import Manager
 
 # Check for AniChou home path existence
 # Create it if not existient

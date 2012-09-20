@@ -29,8 +29,10 @@ class ACPreferencesDialog(QtGui.QDialog):
             tab.serviceName = name
             self.ui.services.addTab(tab, name)
 
+    def closeEvent(self, event):
+        self.saveConfig()
+
     def saveConfig(self):
-        import ipdb; ipdb.set_trace()
         self.cfg.startup['sync'] = bool(self.ui.sync.isChecked())
         self.cfg.startup['tracker'] = bool(self.ui.tracker.isChecked())
         self.cfg.search_dirs = self.ui.searchDirs.getValue()

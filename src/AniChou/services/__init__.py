@@ -7,6 +7,8 @@ from AniChou.services.default import DefaultService
 
 
 def chooser(name, classname=None):
+    if not name:
+        return DefaultService
     try:
         service = getattr(__import__('AniChou.services.%s' % name,
                 fromlist=[name,]), classname or name.capitalize())
@@ -86,7 +88,12 @@ class Manager(object):
         """
         for service in self.services:
             yield service.name
-            if not service.sync():
+            try:
+                if not service.sync():
+                    yield False
+            except Exception, e:
+                logging.error("""Exception in sync:
+{0}""".format(e))
                 yield False
         yield True
 

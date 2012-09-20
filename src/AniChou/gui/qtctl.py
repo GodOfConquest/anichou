@@ -1,4 +1,5 @@
 
+import logging
 
 from PyQt4 import QtCore, QtGui
 from AniChou import players, recognizinig
@@ -8,7 +9,9 @@ from AniChou.services.data.base import LOCAL_STATUS
 from AniChou.gui.widgets import ( ACStatusTab, ACAboutDialog,
                                   ACPreferencesDialog )
 
+
 __all__ = ['get_app', 'Main']
+
 
 def get_app(argv):
     return QtGui.QApplication(argv)
@@ -70,8 +73,7 @@ class Main(QtGui.QMainWindow):
 
     def track(self):
         if self.ui.tracker.isVisible():
-            track = players.get_playing(settings.PLAYERS,
-                                self.cfg.search_dir.values())
+            track = players.get_playing(settings.PLAYERS, self.cfg.search_dirs)
             for key in track.keys():
                 e = recognizinig.engine(key, self.manager.db)
                 m = e.match()

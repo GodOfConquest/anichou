@@ -16,5 +16,5 @@ class ACServiceTab(object):
         return {
             'username': self.ui.Username.getValue(),
             'password': self.ui.Password.getValue(),
-            'enabled': bool(self.ui.enabled.checked())
+            'enabled': bool(self.ui.enabled.isChecked())
         }

@@ -23,9 +23,10 @@ PACKAGE_PATH = path.abspath(path.dirname(__file__))
 CONFIG_PATH = path.join(USER_PATH, 'ac.cfg')
 
 # Log settings
-LOG_ERROR_FORMAT = "%(levelname)s at %(asctime)s in %(funcName)s in %(filename) at line %(lineno)d: %(message)s"
+LOG_ERROR_FORMAT = "%(levelname)s at %(asctime)s in %(funcName)s in %(filename)s at line %(lineno)d: %(message)s"
 LOG_ERROR_DATE = '[%d.%m.%Y %I:%M:%S]'
 LOG_DEBUG_FORMAT = "%(asctime)s: %(message)s"
+#LOG_ERROR_FORMAT = LOG_DEBUG_FORMAT
 LOG_PATH = path.join(USER_PATH, 'ac.log')
 LOG_CONFIG_PATH = path.join(PACKAGE_PATH, 'data', 'logging.cfg')
 LOG_CONFIG = {'version': 1,
