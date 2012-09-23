@@ -4,6 +4,15 @@ import cStringIO
 import traceback
 
 
+class classproperty(property):
+    def __get__(self, obj, type_):
+        return self.fget.__get__(None, type_)()
+
+    def __set__(self, obj, value):
+        cls = type(obj)
+        return self.fset.__get__(None, cls)(value)
+
+
 def excepthook(excType, excValue, tracebackobj):
     """
     Global function to catch unhandled exceptions.

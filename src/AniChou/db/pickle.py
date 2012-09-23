@@ -9,27 +9,32 @@
 
 import cPickle
 from os import path
-import settings
+from AniChou import settings
 
-class db(object):
+class PickleDB(dict):
     """
     Database module. Reads and writes to local database.
 
     """
     def __init__(self):
-        self.local_db = {}
-        if path.isfile(settings.DATA_PATH):
-            db_handle = open(settings.DATA_PATH, 'rb')
-            self.local_db = cPickle.load(db_handle)
-            db_handle.close()
+        dict.__init__(self, {})
 
-    def set_db(self, data):
-        """ takes a dictionary object to store into the DB
+    def write(self, data):
+        """
+        Takes a dictionary object to store into the DB
         """
         db_handle = open(settings.DATA_PATH, 'wb')
-        cPickle.dump(data, db_handle)
+        cPickle.dump(dict(self), db_handle)
         db_handle.close()
 
-
-    def get_db(self):
+    def read(self):
+        """
+        Reads from db.
+        """
+        if not self.local_db:
+            if path.isfile(settings.DATA_PATH):
+                db_handle = open(settings.DATA_PATH, 'rb')
+                self.clear()
+                self.update(cPickle.load(db_handle))
+                db_handle.close()
         return self.local_db
