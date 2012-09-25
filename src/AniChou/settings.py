@@ -60,5 +60,8 @@ TIMEOUT = 0.001
 # Interval between two tracking attempts
 TRACKING_INTERVAL = 1000
 
+# Recognizing minimum matching level
+MATCHING_LEVEL = 0.3
+
 # List of players processes names for tracking
 PLAYERS = ['mplayer', 'totem']

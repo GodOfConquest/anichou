@@ -32,22 +32,25 @@ LOCAL_STATUS_R = {
 
 LOCAL_ANIME_SCHEMA = {
     'title': unicode,
-    'synonyms': list,
+    'synonyms': set,
     'type': int,
     'episodes': int,
     'sources': dict,
-    'series_status': int,
-    'series_start': datetime,
-    'series_end': datetime,
+    'status': int,
+    'started': datetime,
+    'ended': datetime,
     'image': list,
-    'status_episodes': int,
-    'status_start': date,
-    'status_finish': date,
-    'status_score': int,
-    'status_status': int,
-    'status_updated': datetime
+    'my_episodes': int,
+    'my_start': date,
+    'my_finish': date,
+    'my_score': int,
+    'my_status': int,
+    'my_updated': datetime
 }
 
 
 class Anime(Model):
     _scheme = LOCAL_ANIME_SCHEMA
+
+    def names(self):
+        return [self.titile] + self.synonyms

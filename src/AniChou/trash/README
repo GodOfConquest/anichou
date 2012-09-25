@@ -1,4 +1,5 @@
 
-Application of files in this folder is not clear. It does not used by
-main app and makes entropy of root app folder bigger. Will be removed
-in future if code in this files will be useless.
+Application of files in this folder is not clear, or files was rewriten
+from scratch. It does not used by main app and makes entropy of root
+app folder bigger. Will be removed in future if code in this files will
+be useless.

@@ -1,13 +1,16 @@
 
 import logging
+import time
 
 from PyQt4 import QtCore, QtGui
 from AniChou import players, recognizinig
 from AniChou import settings
+from AniChou import signals
+from AniChou.db.models import Anime
 from AniChou.gui.Main import Ui_AniChou
-from AniChou.services.data.base import LOCAL_STATUS
 from AniChou.gui.widgets import ( ACStatusTab, ACAboutDialog,
                                   ACPreferencesDialog )
+from AniChou.services.data.base import LOCAL_STATUS
 
 
 __all__ = ['get_app', 'Main']
@@ -17,11 +20,24 @@ def get_app(argv):
     return QtGui.QApplication(argv)
 
 
+class SupportThread(QtCore.QThread):
+    """
+    This thread does all application additional logic like processing
+    application-level signals.
+    """
+    _exit
+    def run(self):
+        while not self._exit:
+            signals.process()
+            time.sleep(0.01)
+
+
 class Main(QtGui.QMainWindow):
 
     def __init__(self, manager, cfg):
         self.manager = manager
         self.cfg = cfg
+        self.supportThread = SupportThread()
         QtGui.QMainWindow.__init__(self)
         self.ui = Ui_AniChou()
         self.ui.setupUi(self)
@@ -38,11 +54,14 @@ class Main(QtGui.QMainWindow):
             QtCore.QTimer.singleShot(100, self, QtCore.SLOT('sync()'))
 
         # Setup tracker
-        self.tracker = QtCore.QTimer()
-        self.connect(self.tracker, QtCore.SIGNAL('timeout()'), self.track);
+        self.tracker = signals.Signal()
+        self.tracker.connect('start_tracker')
+        self.tracker.connect('stop_tracker')
         self.toggleTracker(cfg.startup.get('tracker'))
 
         self.updateFromDB()
+
+        self.supportThread.run()
 
 
     def notify(self, message):
@@ -62,49 +81,13 @@ class Main(QtGui.QMainWindow):
     def toggleTracker(self, value):
         value = bool(value)
         if value:
-
-            self.tracker.start(settings.TRACKING_INTERVAL)
+            signals.emit(self.tracker, 'start_tracker')
         else:
-            self.tracker.stop()
+            signals.emit(self.tracker, 'stop_tracker')
         self.ui.actionPlaybar.setChecked(value)
         self.ui.tracker.setVisible(value)
         self.cfg.startup['tracker'] = value
         self.cfg.save()
-
-    def track(self):
-        if self.ui.tracker.isVisible():
-            track = players.get_playing(settings.PLAYERS, self.cfg.search_dirs)
-            for key in track.keys():
-                e = recognizinig.engine(key, self.manager.db)
-                m = e.match()
-                try:
-                    ep = int(e._getEpisode().strip('/'))
-                    if m:
-                        if self.manager.db[m]['status_episodes'] == \
-                                    ep - 1 and \
-                                self.manager.db[m]['status_status'] == \
-                                    LOCAL_STATUS_R['watching']:
-                            msg = u'Playing: {0} -- Episode: {1}'.format(m, ep)
-                            self.ui.tracker.setText(msg)
-                            if ep < self.manager.db[m]['episodes']:
-                                self.manager.db[m]['status_episodes'] = ep
-                                self.manager.db[m]['status_updated'] = \
-                                                datetime.datetime.now()
-                                self.manager.save()
-
-                                #TODO: it is hack to update table
-                                #~ newep = str(ep) + ' / ' + str(self.manager.db[m]['episodes'])
-                                #~ sw = self.tv[1].keylist
-                                #~ i = 0 # row tracker
-                                #~ for key in sw:
-                                    #~ if key == m:
-                                        #~ break
-                                    #~ else:
-                                        #~ i += 1
-                                #~ self.tv[1].liststore[str(i)][1] = newep
-                except:
-                    break
-        return True
 
     def updateFromDB(self):
         """
