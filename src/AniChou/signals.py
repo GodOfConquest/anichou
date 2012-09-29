@@ -7,7 +7,7 @@ from weakref import WeakValueDictionary
 
 __all__ = ['Slot', 'Signal', 'emit', 'process']
 
-registred_slots = WeakValueDictionary()
+registred_slots = dict()
 signals_stack = Queue()
 
 
@@ -16,10 +16,14 @@ class Slot(object):
     """
     This decorator register slot for use by signals
     """
-    def __init__(self, name=None):
+    def __init__(self, name=None, target=None):
         self.name = name
+        if target:
+            self(target)
 
     def __call__(self, func):
+        if type(func) == types.MethodType:
+            func = partial(func.__func__, func.__self__)
         def wrapped_f(*args, **kwargs):
             func(*args, **kwargs)
         # Check slot name and add to dict
@@ -94,7 +98,7 @@ class Signal(object):
         self.__slots.clear()
 
 
-def emit(signal, slot, *args, **kwargs):
+def emit(signal, slot=None, *args, **kwargs):
     """
     Takes signal and adds it to signal queue.
     """

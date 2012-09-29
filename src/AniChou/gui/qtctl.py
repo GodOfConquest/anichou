@@ -53,6 +53,11 @@ class Main(QtGui.QMainWindow):
         if self.cfg.startup.get('sync'):
             QtCore.QTimer.singleShot(100, self, QtCore.SLOT('sync()'))
 
+        # Register signals
+        signals.Slot('notify', self.notify)
+        signals.Slot('gui_tables_update', self.updateFromDB)
+        signals.Slot('set_track_message', self.setTrackMessage)
+
         # Setup tracker
         self.tracker = signals.Signal()
         self.tracker.connect('start_tracker')
@@ -62,9 +67,9 @@ class Main(QtGui.QMainWindow):
         self.supportThread.start()
 
 
-    @signals.Slot('notify')
+    #@signals.Slot('notify')
     def notify(self, message):
-        self.ui.statusbar.setMessage(message)
+        self.ui.statusbar.showMessage(message)
 
     @QtCore.pyqtSlot()
     def clearMessage(self):
@@ -82,7 +87,7 @@ class Main(QtGui.QMainWindow):
         self.cfg.startup['tracker'] = value
         self.cfg.save()
 
-    @signals.Slot('gui_tables_update')
+    #@signals.Slot('gui_tables_update')
     def updateFromDB(self):
         """
         Update all anime tables views from database.
@@ -100,7 +105,7 @@ class Main(QtGui.QMainWindow):
         for i in range(0, self._stabs.count()):
             self._stabs.widget(i).updateData(statuses.get(i+1, {}))
 
-    @signals.Slot('set_track_message')
+    #@signals.Slot('set_track_message')
     def setTrackMessage(self, message=''):
         self.ui.tracker.setText(message)
 
