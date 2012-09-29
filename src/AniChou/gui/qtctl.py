@@ -25,7 +25,7 @@ class SupportThread(QtCore.QThread):
     This thread does all application additional logic like processing
     application-level signals.
     """
-    _exit
+    _exit = False
     def run(self):
         while not self._exit:
             signals.process()
@@ -58,24 +58,17 @@ class Main(QtGui.QMainWindow):
         self.tracker.connect('start_tracker')
         self.tracker.connect('stop_tracker')
         self.toggleTracker(cfg.startup.get('tracker'))
-
         self.updateFromDB()
+        self.supportThread.start()
 
-        self.supportThread.run()
 
-
+    @signals.Slot('notify')
     def notify(self, message):
         self.ui.statusbar.setMessage(message)
 
     @QtCore.pyqtSlot()
     def clearMessage(self):
         self.ui.statusbar.clearMessage()
-
-    @QtCore.pyqtSlot()
-    def sync(self):
-        self.manager.sync()
-        self.updateFromDB()
-        QtCore.QTimer.singleShot(5000, self, QtCore.SLOT('clearMessage()'))
 
     @QtCore.pyqtSlot(bool)
     def toggleTracker(self, value):
@@ -89,6 +82,7 @@ class Main(QtGui.QMainWindow):
         self.cfg.startup['tracker'] = value
         self.cfg.save()
 
+    @signals.Slot('gui_tables_update')
     def updateFromDB(self):
         """
         Update all anime tables views from database.
@@ -96,22 +90,23 @@ class Main(QtGui.QMainWindow):
         """
 
         statuses = {}
-
         # Separate anime data according to their status
-        for key, value in self.manager.db.items():
-            status = value['status_status']
+        for item in Anime.objects.all():
+            status = item.my_status
             if status not in statuses:
-                statuses[status] = {}
-            status[status][key] = value
+                statuses[status] = []
+            statuses[status].append(item)
 
         for i in range(0, self._stabs.count()):
             self._stabs.widget(i).updateData(statuses.get(i+1, {}))
 
+    @signals.Slot('set_track_message')
+    def setTrackMessage(self, message=''):
+        self.ui.tracker.setText(message)
 
     @QtCore.pyqtSlot()
     def sync(self):
         self.manager.sync()
-        self.updateFromDB()
         QtCore.QTimer.singleShot(5000, self, QtCore.SLOT('clearMessage()'))
 
 

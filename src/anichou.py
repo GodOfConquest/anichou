@@ -17,6 +17,7 @@ import os, sys
 # Load logging system
 import logging.config
 from AniChou import settings
+from AniChou.tracker import tracker
 
 try:
     logging.config.dictConfig(settings.LOG_CONFIG)
@@ -46,6 +47,7 @@ if not os.path.isdir(settings.USER_PATH):
 cfg = BaseConfig()
 
 service = Manager(config=cfg)
+tracker.set_config(cfg)
 
 ## RUN THE APPLICATION
 if cfg.startup.get('gui'):

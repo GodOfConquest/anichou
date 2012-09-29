@@ -1,6 +1,6 @@
 
 from AniChou.db.fields import from_type
-from AniChou.db.manager import Manager
+from AniChou.db.manager import Manager, AlreadyExists
 from AniChou.utils import classproperty
 
 class ModelBase(type):
@@ -43,6 +43,9 @@ class Model(object):
     _scheme = None
     fields = {}
 
+    _changed = False
+    _inlist = False
+
     @property
     def unique_fields(self):
         fields = {}
@@ -59,10 +62,16 @@ class Model(object):
             field.set(value)
 
     def save(self):
-        self.objects.add(self)
+        self._changed = False
+        try:
+            self.objects.add(self)
+        except AlreadyExists:
+            pass
+        self._inlist = True
 
     def delete(self):
         self.objects.delete(self)
+        self._inlist = False
 
 
 

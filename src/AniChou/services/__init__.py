@@ -2,7 +2,8 @@
 import logging
 
 from AniChou import settings
-from AniChou.gui import notify
+from AniChou import signals
+from AniChou.utils import notify
 from AniChou.services.default import DefaultService
 
 
@@ -81,6 +82,7 @@ class Manager(object):
                     notify('Syncing Done.')
             else:
                 notify('Syncing with {0}..'.format(name))
+        signals.emit(signals.Signal('gui_tables_update'))
 
     def syncNext(self):
         """
@@ -96,14 +98,6 @@ class Manager(object):
 {0}""".format(e))
                 yield False
         yield True
-
-    def save(self):
-        self.main.save()
-
-    def getDb(self):
-        """ Compatibility with current gui """
-        return self.main.db
-    db = property(getDb)
 
     def updateConfig(self):
         """Reload config"""

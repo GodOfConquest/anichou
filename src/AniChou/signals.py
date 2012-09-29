@@ -5,31 +5,35 @@ from functools import partial
 from weakref import WeakValueDictionary
 
 
-__all__ = ['slot', 'Signal', 'emit', 'process']
+__all__ = ['Slot', 'Signal', 'emit', 'process']
 
 registred_slots = WeakValueDictionary()
 signals_stack = Queue()
 
 
 
-def slot(name = None):
+class Slot(object):
     """
     This decorator register slot for use by signals
     """
-    def _decorator(func):
+    def __init__(self, name=None):
+        self.name = name
+
+    def __call__(self, func):
         def wrapped_f(*args, **kwargs):
-            f(*args, **kwargs)
+            func(*args, **kwargs)
         # Check slot name and add to dict
-        if not name:
-            name = '.'.join(func.__module__, func.__name__)
-        registred_slots[name] = wrapped_f
+        if not self.name:
+            self.name = '.'.join(func.__module__, func.__name__)
+        registred_slots[self.name] = wrapped_f
         return wrapped_f
-    return  _decorator
 
 
 class Signal(object):
-    def __init__(self):
+    def __init__(self, *args):
         self.__slots = WeakValueDictionary()
+        for slot in args:
+            self.connect(slot)
 
     def __call__(self, slot, *args, **kwargs):
         """

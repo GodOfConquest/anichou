@@ -5,13 +5,15 @@ import urllib
 import BeautifulSoup
 
 from datetime import date, datetime
+from AniChou.db.models import LOCAL_STATUS_R, LOCAL_TYPE_R
 from AniChou.services.default import DefaultService
-from AniChou.services.data.mal import mal_anime_data_schema
+from AniChou.services.data import mal as data
 
 
 class Mal(DefaultService):
 
     name = "myanimelist.net"
+    decodable_fields = ('type', 'my_status', 'sources')
 
     def login(self):
         """
@@ -43,7 +45,7 @@ class Mal(DefaultService):
             return False
 
 
-    def getURL(self, user, status = 'all', typ = None):
+    def fetchURL(self, user, status = 'all', typ = None):
         """
         Safely generate a URL to get XML.
         Type may be 'manga'.
@@ -75,7 +77,7 @@ class Mal(DefaultService):
         """
         # This function should be broken up and partly refactored into
         # the class to be better configurable.
-        fetch_url = self.getURL(self.username)
+        fetch_url = self.fetchURL(self.username)
         try:
             fetch_response = open(self.mirror, 'rb')
         except:
@@ -93,7 +95,7 @@ class Mal(DefaultService):
         entity = lambda m: BeautifulSoup.Tag.XML_ENTITIES_TO_SPECIAL_CHARS[m.group(1)]
         # Walk through all the anime nodes and convert the data to a python
         # dictionary.
-        ac_remote_anime_dict = dict()
+        ac_remote_anime_list = []
         for anime in anime_nodes:
             # ac_node builds the output of our function. Everything added to it
             # must either be made independent of the parse tree by calling
@@ -102,7 +104,7 @@ class Mal(DefaultService):
             # non-mutators like string.strip()
             # Failing to do this will crash cPickle.
             ac_node = dict()
-            for node, typ in mal_anime_data_schema.iteritems():
+            for node, typ in data.anime_schema.iteritems():
                 try:
                     value = getattr(anime, node).string.strip()
                     # One would think re.sub directly accepts string subclasses
@@ -126,20 +128,24 @@ class Mal(DefaultService):
                     # process string slots
                     ac_node[node] = value
 
-            # series titles are used as anime identifiers
-            # the keys for the resulting dictionary are encoded to ASCII, so they
-            # can be simply put into shelves
-            key = ac_node['series_title'].encode('utf-8')
-
             # add node entry to the resulting nodelist
-            ac_remote_anime_dict[key] = ac_node
+            ac_remote_anime_list.append(ac_node)
 
         # the resulting dict is like this:
-        # {<ASCII-fied key from title>: {<mal_anime_data_schema-fields>: <values>}, ...}
-        return ac_remote_anime_dict
+        # [{<anime_data_schema-fields>: <values>}, ...]
+        return ac_remote_anime_list
 
-    def decodeList(self, recieved_list):
-        return {}
+    def decode(self, item):
+        return super(Mal, self).decode(item, data.anime_convert)
 
-    def encodeList(self, sended_list):
+    def decodeField(self, name, value):
+        if name == 'sources':
+            return {self: value}
+        elif name == 'type':
+            return LOCAL_TYPE_R[value.lower()]
+        elif name == 'my_status':
+            return LOCAL_STATUS_R[data.status_schema[value]]
+        return value
+
+    def encode(self, item):
         return {}

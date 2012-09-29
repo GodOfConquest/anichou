@@ -5,7 +5,7 @@ from AniChou import settings
 from AniChou import signals
 from AniChou.db.models import LOCAL_STATUS_R
 from AniChou.tracker import players
-from AniChou.tracker.recognizinig import recognize, extract_episode
+from AniChou.tracker.recognizing import recognize, extract_episode
 
 __doc__ = """Watcher thread
 This module provides watcher class for the tracker.
@@ -21,6 +21,7 @@ class Watcher(threading.Thread):
         self.cfg = cfg
         self.trackmessage = signals.Signal()
         self.trackmessage.connect('set_track_message')
+        super(Watcher, self).__init__()
 
     def run(self):
         while not self._exit:

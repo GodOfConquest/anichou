@@ -4,7 +4,7 @@ import urllib2
 from cookielib import LWPCookieJar
 
 from AniChou.config import BaseConfig
-from AniChou.database import db as local_database
+from AniChou.db.models import Anime
 from AniChou import settings
 
 
@@ -22,6 +22,8 @@ class DefaultService(object):
     """
 
     name = "Dummy service"
+    decode_schema = {}
+    decodable_fields = {}
 
     def __init__(self, config=None, **kw):
         """
@@ -39,9 +41,7 @@ class DefaultService(object):
         # That would also enable reconfiguration at runtime.
         self.setConfig(config or BaseConfig(), **kw)
 
-        # pull the local DB as a dictionary object
-        self.local_db = local_database()
-        self.db = self.local_db.get_db()
+        self.encode_schema = dict([(value, key) for key, value in self.decode_schema])
 
         # setup cookie handler
         self.opener = urllib2.build_opener(
@@ -69,17 +69,18 @@ class DefaultService(object):
         """
         logging.info("Service %s was disabled", self.name)
 
-    def getUrl():
+    def fetchUrl():
         raise NotImplementedError('This function must be implemented in subclass')
 
-    def postUrl(a):
+    def pushUrl(a):
         raise NotImplementedError('This function must be implemented in subclass')
 
     def save(self):
         """
         Only saves the current state to disk w/o network activity.
         """
-        self.local_db.set_db(self.db)
+        #self.local_db.set_db(self.db)
+        pass
 
     def sync(self):
         """
@@ -95,48 +96,14 @@ class DefaultService(object):
             logging.warn('Login to %s server failed..', self.name)
             return False
 
-        remoteAnime_db = self.getList()
-        if self.db:
-            # If local DB is already initialized then filter changes
-            # and push local updates
-            (remote_updates, local_updates, deleted_keys) = \
-                self_filterSyncChanges(remoteAnime_db, self.db)
-            self.logChanges(remote_updates, local_updates, deleted_keys)
-            if not self.anonymous:
-                self.pushList(local_updates)
-            else:
-                logging.warn('Your local data goes ouf of sync')
-
-            # update local anime list with changes
-            for key in deleted_keys:
-                del self.db[key]
-            for key, value in remote_updates.items():
-                self.db[key] = value
-
-            # write to local DB
-            self.local_db.set_db(self.db)
-
-            return (remote_updates, deleted_entry_keys)
+        # Get remote list and filter it
+        (remote_updates, local_updates) = self.getList()
+        self.logChanges(remote_updates, local_updates)
+        if not self.anonymous:
+            self.pushList(local_updates)
         else:
-            # initialize local data, as it was empty before
-            self.db = remoteAnime_db
-            # write to local DB
-            self.local_db.set_db(self.db)
-            return (self.db, {})
-
-
-    def fetch(self):
-        """
-        UNUSED
-        Only fetch anime data from MyAnimeList server (overwrites local data,
-        if existent). Useful for initializing and resetting local database.
-
-        Returns a copy of the fetched database on success, None on failure.
-        """
-        self.db = _getAnimeList(self.username)
-        # write to local DB
-        self.local_db.set_db(self.db)
-        return self.db
+            logging.warn('Your local data goes ouf of sync')
+        Anime.objects.save()
 
     def sendRequest(self, link, data):
         try:
@@ -158,7 +125,6 @@ class DefaultService(object):
         """
         raise NotImplementedError('Must be implemented in subclass')
 
-
     def getList(self):
         """
         Retrieve Anime list from service server and convert it to
@@ -166,24 +132,62 @@ class DefaultService(object):
         Returns: dictionary object.
         """
         recieved_list = self.recieveList()
-        return self.decodeList(recieved_list)
+        return self.convertList(recieved_list)
 
 
     def recieveList(self):
         """
         Connect to server and get user list.
-        Returns: anything you process in convertList method
+        Returns: anything you process in decodeList method
         """
         raise NotImplementedError('Must be implemented in subclass')
 
 
-    def decodeList(self, recieved_list):
+    def convertList(self, recieved_list):
         """
         Convert recieved service list to local format.
-        Returns: dictionary object.
+        Returns:
+           remote_updates: changes that are more up to date on the server
+           local_updates: changes that are more up to date locally
+        """
+        remote_updates = []
+        local_updates = []
+        for item in recieved_list:
+            decoded = self.decode(item)
+            (anime, created) = Anime.objects.get_or_create(
+                                        names__in=decoded['title'],
+                                        type=decoded['type'],
+                                        started=decoded['started'])
+            if created or anime.my_updated < decoded['my_updated']:
+                remote_updates.append(anime)
+                anime.fromDict(decoded)
+                anime.save()
+            elif anime.my_updated > decoded['my_updated']:
+                local_updates.append(anime)
+        return remote_updates, local_updates
+
+    def decode(self, item, schema=None):
+        """
+        Convert item dictionary form remote service schema to local
+        schema `db.models.LOCAL_ANIME_SCHEMA`. Service must provide
+        convert list as schema parameter.
+        Returns: converted dictionary
+        """
+        if not schema:
+            raise NotImplementedError('Must be called with convert list')
+        ret = {}
+        for key, value in schema:
+            if value in self.decodable_fields:
+                ret[value] = self.decodeField(value, ret[key])
+            else:
+                ret[value] = ret[key]
+        return ret
+
+    def decodeField(self, name, value):
+        """
+        Make convert proceduer for specific fields
         """
         raise NotImplementedError('Must be implemented in subclass')
-
 
     def pushList(self, local_updates):
         """
@@ -193,14 +197,13 @@ class DefaultService(object):
         Returns:
             True on success, False on failure
         """
-        for anime in local_updates.values():
+        for anime in local_updates:
             postdata = urllib.urlencode(self.makePost(anime))
-            response = self.sendRequest(self.postURL(anime), postdata)
+            response = self.sendRequest(self.pushURL(anime), postdata)
             if not response:
                 return False
             time.sleep(settings.TIMEOUT)
         return True
-
 
     def encodeList(self, sended_list):
         """
@@ -209,61 +212,11 @@ class DefaultService(object):
         """
         raise NotImplementedError('Must be implemented in subclass')
 
-
-    def _filterSyncChanges(self, remote_dict, local_dict):
-        """
-        Private Method
-        Compares the anime entry status_updated in both parameters and returns two
-        dictionaries of changed values of both parameters.
-
-        Returns:
-            remote_updates: changes that are more up to date on the server
-            local_updates: changes that are more up to date locally
-            deleted_enry_keys: keys that are in the local database, but not in the
-                               remote list.
-        """
-        remote_updates = dict()
-        local_updates = dict()
-
-        # search for entirely new enries and deleted entries
-        remote_keys = remote_dict.keys()
-        local_keys = local_dict.keys()
-
-        deleted_entry_keys = \
-            filter(lambda x:x not in remote_keys, local_keys)
-
-        new_entry_keys = \
-            filter(lambda x:x not in local_keys, remote_keys)
-        for key in new_entry_keys:
-            remote_updates[key] = remote_dict[key]
-
-        # search in both dictionaries for differing update keys and append to the
-        # other's updates depending on which key is newer
-        common_keys = filter(lambda x:x in local_keys, remote_keys)
-
-        for key in common_keys:
-            remote_timestamp = remote_dict[key]['status_updated']
-            local_timestamp = local_dict[key]['status_updated']
-            if remote_timestamp > local_timestamp:
-                remote_updates[key] = remote_dict[key]
-            elif remote_timestamp < local_timestamp:
-                local_updates[key] = local_dict[key]
-
-        return (remote_updates, local_updates, deleted_entry_keys)
-
-
-    def logChanges(remote, local, deleted):
+    def logChanges(self, remote, local):
         """
         Writes changes to logfile.
         """
-        f = open(settings.LOG_PATH, 'a')
-        now = str(int(time.mktime(datetime.now().timetuple())))
-        for key, value in remote.items():
-            f.write(u'[{0}] Fetching {1} episode {2}\n'.format(
-                    now, key, unicode(value['status_episodes'])))
-        for key, value in local.items():
-            f.write(u'[{0}] Pushing {1} episode {2}\n'.format(
-                    now, key, unicode(value['status_episodes'])))
-        for entry in deleted:
-            f.write(u'[{0}] Deleted "{1}"\n'.format(now, entry))
-        f.close()
+        for action, array in (('Fetching', remote), ('Pushing', local)):
+            for anime in array:
+                logging.info(u'{1} {2} episode {3}\n'.format(now,
+                         action, anime.title, unicode(anime.my_episodes)))

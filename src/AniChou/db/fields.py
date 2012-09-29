@@ -1,9 +1,16 @@
 
-from datetime import datetime
+import datetime
 
 __all__ = ['from_type', 'Field', 'TypedField', 'NumberField',
            'StringField', 'DatetimeField', 'ListField', 'DictField']
 
+DATE_INPUT_FORMATS = (
+    '%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y',
+    '%b %d %Y', '%b %d, %Y',
+    '%d %b %Y', '%d %b, %Y',
+    '%B %d %Y', '%B %d, %Y',
+    '%d %B %Y', '%d %B, %Y',
+)
 
 def from_type(t):
     """
@@ -26,7 +33,11 @@ class Field(object):
         return self._value
 
     def __set__(self, caller, value):
-        self._value = value
+        caller._changed = True
+        self._value = self.to_python(value)
+
+    def to_python(self, value):
+        return value
 
     def contribute_to_class(self, cls, name):
         cls.fields[name] = self
@@ -34,12 +45,18 @@ class Field(object):
 
 
 class TypedField(Field):
-    _types = (object,)
-    def __set__(self, caller, value):
-        if type(value) not in self._types:
-            raise TypeError('Type of {0} does not match {1}'.format(
-                value, self._types))
-        self._value = value
+    ERRORS = {
+        'bad_type': 'Bad input type',
+        'undefined_types': 'Types for field not defined'
+    }
+
+    def to_python(self, value):
+        try:
+            return self._types[-1](value)
+        except IndexError:
+            raise ValueError(ERRORS['undefined_types'])
+        except:
+            raise TypeError(ERRORS['bad_type'])
 
 
 class NumberField(TypedField):
@@ -51,7 +68,23 @@ class StringField(TypedField):
 
 
 class DatetimeField(TypedField):
-    _types = (datetime,)
+    _types = (datetime.datetime,)
+    input_formats = DATE_INPUT_FORMATS
+
+    def to_python(self, value):
+        if isinstance(value, datetime.datetime):
+            return value
+        if isinstance(value, datetime.date):
+            return datetime.datetime(value.year, value.month, value.day)
+        for format in self.input_formats:
+            try:
+                return self.strptime(value, format)
+            except (ValueError, TypeError):
+                continue
+        raise ValueError(ERRORS['bad_type'])
+
+    def strptime(self, value, format):
+        return datetime.datetime.strptime(value, format)
 
 
 class ListField(TypedField):

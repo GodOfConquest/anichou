@@ -7,25 +7,33 @@ __doc__ = """
 This module provides tracker.
 """
 
-class Tracker(object):
 
-    __watcher = None
+__all__ = ['start', 'stop', 'set_config']
 
-    def __init__(self, cfg):
-        self.cfg = cfg
+WATCHER = False
+CONFIG = None
 
-    @signals.slot('start_tracker')
-    def start(self):
-        if self.__watcher
-            raise RuntimeError('Tracker already started')
-        self.__watcher = Watcher(cfg)
-        self.__watcher.start()
+def set_config(cfg):
+    global CONFIG
+    CONFIG = cfg
 
-    @signals.slot('stop_tracker')
-    def stop(self):
-        if self.__watcher:
-            self.__watcher._exit = True
-            # Do we need join here?
-            self.__watcher = None
-        else:
-            raise RuntimeError('Tracker already stopped')
+
+@signals.Slot('start_tracker')
+def start():
+    global WATCHER
+    global CONFIG
+    if WATCHER:
+        raise RuntimeError('Tracker already started')
+    WATCHER = Watcher(CONFIG)
+    WATCHER.start()
+
+
+@signals.Slot('stop_tracker')
+def stop():
+    global WATCHER
+    if WATCHER:
+        WATCHER._exit = True
+        # Do we need join here?
+        WATCHER = None
+    else:
+        raise RuntimeError('Tracker already stopped')

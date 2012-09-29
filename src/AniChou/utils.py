@@ -2,6 +2,7 @@
 import logging
 import cStringIO
 import traceback
+from AniChou import signals
 
 
 class classproperty(property):
@@ -32,3 +33,8 @@ def excepthook(excType, excValue, tracebackobj):
     errmsg = '%s: \n%s' % (str(excType), str(excValue))
     msg = '\n'.join([errmsg, tbinfo])
     logging.error(msg)
+
+
+def notify(message):
+    logging.info(message)
+    signals.emit(signals.Signal('notify'), None, message)

@@ -13,7 +13,7 @@ communication with the server.
 from datetime import date, datetime
 
 ## ANIME schema of the xml data the MyAnimeList server sends
-mal_anime_data_schema = {
+anime_schema = {
     'series_animedb_id': int,
     'series_title': unicode,
     'series_synonyms': unicode,
@@ -31,8 +31,25 @@ mal_anime_data_schema = {
     'my_status': int,   # push argument
     'my_rewatching': int,
     'my_rewatching_ep': int,
-    'my_last_updated': datetime}   # sync variable
+    'my_last_updated': datetime   # sync variable
+}
 
+
+anime_convert = [
+    ('series_title', 'title'),
+    ('series_synonyms', 'synonyms'),
+    ('series_type', 'type'),
+    ('series_episodes', 'episodes'),
+    ('series_status', 'status'),
+    ('series_start',  'started'),
+    ('series_end', 'ended'),
+    ('my_watched_episodes', 'my_episodes'),
+    ('my_start_date', 'my_start'),
+    ('my_finish_date', 'my_finish'),
+    ('my_score', 'my_score'),
+    ('my_status', 'my_status'),
+    ('my_last_updated', 'my_updated')
+]
 
 ## Here is a sample of the data representation the myanimelist module produces,
 ## and which is used in the application and is also sent to the persistent data
@@ -150,28 +167,11 @@ mal_api_manga_schema = {
     'retail_volumes' : int}
 
 
-## These are the status code mappings the mal server is sending in the XML file
-( WATCHING, COMPLETED, ONHOLD, DROPPED, UNKNOWN, PLANTOWATCH ) = range(1, 7)
-
 # Here is the reverse mapping of the above for widget adressing and similar
-STATUS = {
+status_schema = {
     1: 'watching',
     2: 'completed',
     3: 'onhold',
     4: 'dropped',
-    6: 'plantowatch' }
-
-# This is the same as above but with capitals and spaces for display purposes
-STATUSB = {
-    1: 'Watching',
-    2: 'Completed',
-    3: 'On Hold',
-    4: 'Dropped',
-    6: 'Plan To Watch' }
-
-STATUS_REV = {
-    'Watching': 1,
-    'Completed': 2,
-    'On Hold': 3,
-    'Dropped': 4,
-    'Plan To Watch': 6 }
+    6: 'plantowatch'
+}

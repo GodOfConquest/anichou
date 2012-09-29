@@ -15,10 +15,6 @@ LOCAL_STATUS = [
     (6, u'Partially watched'),
 ]
 
-
-LOCAL_STATUS_DICT = dict(LOCAL_STATUS)
-
-
 LOCAL_STATUS_R = {
     u'none': 0,
     u'watching': 1,
@@ -27,6 +23,26 @@ LOCAL_STATUS_R = {
     u'dropped': 4,
     u'hold': 5,
     u'partially': 6
+}
+
+LOCAL_TYPE = [
+    (0, u'TV'),
+    (1, u'Movie'),
+    (2, u'OVA'),
+    (3, u'SMovie'),
+    (4, u'Special'),
+    (5, u'ONA'),
+    (6, u'Music')
+]
+
+LOCAL_TYPE_R = {
+    'tv': 0,
+    'movie': 1,
+    'ova': 2, 'oav': 2,
+    'smovie': 3,
+    'special': 4,
+    'ona': 5,
+    'music': 6,
 }
 
 
@@ -39,10 +55,9 @@ LOCAL_ANIME_SCHEMA = {
     'status': int,
     'started': datetime,
     'ended': datetime,
-    'image': list,
     'my_episodes': int,
-    'my_start': date,
-    'my_finish': date,
+    'my_start': datetime,
+    'my_finish': datetime,
     'my_score': int,
     'my_status': int,
     'my_updated': datetime
@@ -54,3 +69,7 @@ class Anime(Model):
 
     def names(self):
         return [self.titile] + self.synonyms
+
+    def save(self):
+        self.my_updated = datetime.now()
+        super(Anime, self).save()

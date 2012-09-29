@@ -43,7 +43,10 @@ class Manager(object):
     def __filterfunc(item, key, value):
         (key, op) = key.partition('__')[::2]
         operation = getattr(operator, op or 'eq')
-        return operation(getattr(item, key), value)
+        attribute = getattr(item, key)
+        if operation == 'in':
+            return value in attribute
+        return operation(attribute, value)
 
     def __init__(self, model):
         self.__model = model
@@ -74,7 +77,6 @@ class Manager(object):
         except DoesNotExist:
             obj = self.__model(**kwargs)
             created = True
-            self.add(obj)
         return [obj, created]
 
     def filter(self, **kwargs):
