@@ -2,9 +2,11 @@
 import logging
 import urllib2
 from cookielib import LWPCookieJar
+from datetime import datetime
 
 from AniChou.config import BaseConfig
 from AniChou.db.models import Anime
+from AniChou.db.manager import DoesNotExists
 from AniChou import settings
 
 
@@ -36,6 +38,9 @@ class DefaultService(object):
 
         In the latter form we support some additional command line options.
         """
+
+        self.internalname = self.__class__.__name__.lower()
+
         # When the architecture stabilizes, switch to config as the sole
         # positional argument, and retain it instead of copying parts.
         # That would also enable reconfiguration at runtime.
@@ -54,9 +59,8 @@ class DefaultService(object):
 
     def setConfig(self, cfg, **kwargs):
         """Setup self variables from config"""
-        name = self.__class__.__name__
         self.base_config  = cfg
-        config = getattr(self.base_config.services, name.lower())
+        config = getattr(self.base_config.services, self.internalname)
         self.username = kwargs.get('username', config.get('username'))
         self.password = kwargs.get('password', config.get('password'))
         self.initsync = kwargs.get('initsync', self.base_config.startup.get('sync'))
@@ -105,6 +109,17 @@ class DefaultService(object):
             logging.warn('Your local data goes ouf of sync')
         Anime.objects.save()
 
+    def loadFile(self, filename):
+        """
+        Syncronize from given file.
+        """
+        #TODO: merge with sync
+        remote_list = open(filename).read()
+        remote_list = self.parseList(remote_list)
+        (remote_updates, local_updates) = self.convertList(remote_list)
+        self.logChanges(remote_updates, local_updates)
+        Anime.objects.save()
+
     def sendRequest(self, link, data):
         try:
             response = self.opener.open(link, data)
@@ -131,17 +146,23 @@ class DefaultService(object):
         uniform local data format.
         Returns: dictionary object.
         """
-        recieved_list = self.recieveList()
-        return self.convertList(recieved_list)
+        remote_list = self.fetchList()
+        return self.convertList(self.parseList(remote_list))
 
-
-    def recieveList(self):
+    def fetchList(self):
         """
-        Connect to server and get user list.
-        Returns: anything you process in decodeList method
+        Retrieve anime list from service server.
+        Returns: remote data in its format.
+        """
+        fetch_response = self.opener.open(self.fetchURL())
+        # TODO whatever error open raises.
+        return unicode(fetch_response.read(), 'utf-8', 'replace')
+
+    def parseList(self, remote_list):
+        """
+        Parse remote list and return it in internal format.
         """
         raise NotImplementedError('Must be implemented in subclass')
-
 
     def convertList(self, recieved_list):
         """
@@ -154,15 +175,21 @@ class DefaultService(object):
         local_updates = []
         for item in recieved_list:
             decoded = self.decode(item)
-            (anime, created) = Anime.objects.get_or_create(
-                                        names__in=decoded['title'],
-                                        type=decoded['type'],
-                                        started=decoded['started'])
-            if created or anime.my_updated < decoded['my_updated']:
-                remote_updates.append(anime)
-                anime.fromDict(decoded)
+            try:
+                anime = Anime.objects.get(names__in=decoded['title'],
+                                type=decoded['type'],
+                                started=decoded.get('started', '*'))
+            except DoesNotExists:
+                anime = Anime(**decoded)
                 anime.save()
-            elif anime.my_updated > decoded['my_updated']:
+                remote_updates.append(anime)
+                continue
+            updated = decoded.get('my_updated', datetime.now())
+            if anime.my_updated < updated:
+                remote_updates.append(anime)
+                anime.update(decoded)
+                anime.save()
+            elif anime.my_updated > updated:
                 local_updates.append(anime)
         return remote_updates, local_updates
 
@@ -177,10 +204,12 @@ class DefaultService(object):
             raise NotImplementedError('Must be called with convert list')
         ret = {}
         for key, value in schema:
+            if not key in item.keys():
+                continue # Schema key not found, schema error maybe?
             if value in self.decodable_fields:
-                ret[value] = self.decodeField(value, ret[key])
+                ret[value] = self.decodeField(value, item[key])
             else:
-                ret[value] = ret[key]
+                ret[value] = item[key]
         return ret
 
     def decodeField(self, name, value):
@@ -218,5 +247,5 @@ class DefaultService(object):
         """
         for action, array in (('Fetching', remote), ('Pushing', local)):
             for anime in array:
-                logging.info(u'{1} {2} episode {3}\n'.format(now,
-                         action, anime.title, unicode(anime.my_episodes)))
+                logging.info(u'{0} {1} episode {2}\n'.format(action,
+                         anime.title, unicode(anime.my_episodes)))

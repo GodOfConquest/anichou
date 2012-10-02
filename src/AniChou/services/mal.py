@@ -44,8 +44,7 @@ class Mal(DefaultService):
         else:
             return False
 
-
-    def fetchURL(self, user, status = 'all', typ = None):
+    def fetchURL(self, status = 'all', typ = None):
         """
         Safely generate a URL to get XML.
         Type may be 'manga'.
@@ -55,7 +54,7 @@ class Mal(DefaultService):
         # Make tuple mutable.
         parts = list(urlparse.urlparse(template))
         # New parameters.
-        query = {'u': user}
+        query = {'u': self.username}
         if status:
             query['status'] = status
         if typ:
@@ -64,10 +63,9 @@ class Mal(DefaultService):
         parts[4] = urllib.urlencode(query)
         return urlparse.urlunparse(parts)
 
-
-    def recieveList(self):
+    def parseList(self, fetch_response):
         """
-        Retrieve Anime XML from MyAnimeList server.
+        Process Anime XML from MyAnimeList server.
         Returns: dictionary object.
         Ways in which the ouput of malAppInfo is *not* XML:
         Declared as UTF-8 but contains illegal byte sequences (characters)
@@ -75,18 +73,6 @@ class Mal(DefaultService):
         It further disagrees with the Expat C extension behind minidom:
         Contains tabs and newlines outside of tags.
         """
-        # This function should be broken up and partly refactored into
-        # the class to be better configurable.
-        fetch_url = self.fetchURL(self.username)
-        try:
-            fetch_response = open(self.mirror, 'rb')
-        except:
-            # TODO whatever error open(None) raises.
-            fetch_response = self.opener.open(fetch_url)
-        # BeautifulSoup could do the read() and unicode-conversion, if it
-        # weren't for the illegal characters, as it internally doesn't
-        # use 'replace'.
-        fetch_response = unicode(fetch_response.read(), 'utf-8', 'replace')
         xmldata = BeautifulSoup.BeautifulStoneSoup(fetch_response)
         # For unknown reasons it doesn't work without recursive.
         # Nor does iterating over myanimelist.anime. BS documentation broken?
@@ -118,12 +104,16 @@ class Mal(DefaultService):
                 elif typ is int:
                     # process integer slots
                     ac_node[node] = int(value)
-                elif typ is date and value != '0000-00-00':
-                    # proces date slots
-                    (y,m,d) = value.split('-')
-                    (y,m,d) = int(y), int(m), int(d)
-                    if y and m and d:
-                        ac_node[node] = date(y,m,d)
+                elif typ in (date, datetime):
+                    if value != '0000-00-00':
+                        try:
+                            ac_node[node] = datetime.strptime(value, '%Y-%m-%d')
+                            if typ is date:
+                                ac_node[node] = ac_node[node].date()
+                        except ValueError as e:
+                            logging.warning('Error in parsing:\n{0}'.format(e))
+                    else:
+                        ac_node[node] = typ(1,1,1)
                 else:
                     # process string slots
                     ac_node[node] = value
@@ -144,7 +134,7 @@ class Mal(DefaultService):
         elif name == 'type':
             return LOCAL_TYPE_R[value.lower()]
         elif name == 'my_status':
-            return LOCAL_STATUS_R[data.status_schema[value]]
+            return LOCAL_STATUS_R[value.lower()]
         return value
 
     def encode(self, item):

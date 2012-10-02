@@ -4,6 +4,7 @@ import logging
 from AniChou import settings
 from AniChou import signals
 from AniChou.utils import notify
+from AniChou.db.models import Anime
 from AniChou.services.default import DefaultService
 
 
@@ -20,6 +21,9 @@ def chooser(name, classname=None):
 
 
 class Manager(object):
+    ERROR_MESSAGES = {
+        'not_found': 'Service {0} not found in loaded services. File skipped.',
+    }
 
     services = []
 
@@ -27,6 +31,17 @@ class Manager(object):
         self.config = config
         self.main = None
         self.loadServices()
+        if hasattr(config, 'files'):
+            for s, fn in config.files.items():
+                try:
+                    service = filter(lambda x: x.internalname == s,
+                                        self.services)[0]
+                except IndexError:
+                    logging.warning(ERROR_MESSAGES['not_found'].format(service))
+                    continue
+                service.loadFile(fn)
+            del config['files']
+            Anime.objects.save()
 
     def loadServices(self):
         """

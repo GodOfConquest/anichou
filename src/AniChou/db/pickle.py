@@ -18,6 +18,7 @@ class PickleDB(dict):
     """
     def __init__(self):
         dict.__init__(self, {})
+        self.read()
 
     def write(self, data):
         """
@@ -31,10 +32,8 @@ class PickleDB(dict):
         """
         Reads from db.
         """
-        if not self.local_db:
-            if path.isfile(settings.DATA_PATH):
-                db_handle = open(settings.DATA_PATH, 'rb')
-                self.clear()
-                self.update(cPickle.load(db_handle))
-                db_handle.close()
-        return self.local_db
+        if path.isfile(settings.DATA_PATH):
+            db_handle = open(settings.DATA_PATH, 'rb')
+            self.clear()
+            self.update(cPickle.load(db_handle))
+            db_handle.close()

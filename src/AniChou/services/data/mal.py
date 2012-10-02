@@ -17,7 +17,7 @@ anime_schema = {
     'series_animedb_id': int,
     'series_title': unicode,
     'series_synonyms': unicode,
-    'series_type': int,
+    'series_type': unicode,
     'series_episodes': int,
     'series_status': int,
     'series_start': date,
@@ -28,7 +28,7 @@ anime_schema = {
     'my_start_date': date,
     'my_finish_date': date,
     'my_score': int,   # push argument
-    'my_status': int,   # push argument
+    'my_status': unicode,   # push argument
     'my_rewatching': int,
     'my_rewatching_ep': int,
     'my_last_updated': datetime   # sync variable
@@ -50,6 +50,7 @@ anime_convert = [
     ('my_status', 'my_status'),
     ('my_last_updated', 'my_updated')
 ]
+
 
 ## Here is a sample of the data representation the myanimelist module produces,
 ## and which is used in the application and is also sent to the persistent data
@@ -165,13 +166,3 @@ mal_api_manga_schema = {
     'scan_group' : str,
     'tags. string' : list,
     'retail_volumes' : int}
-
-
-# Here is the reverse mapping of the above for widget adressing and similar
-status_schema = {
-    1: 'watching',
-    2: 'completed',
-    3: 'onhold',
-    4: 'dropped',
-    6: 'plantowatch'
-}

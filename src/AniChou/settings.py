@@ -38,7 +38,7 @@ LOG_CONFIG = {'version': 1,
                                        'formatter': 'debug',
                                        'level': 'logging.DEBUG'},
                           'file': {'class':'logging.handlers.RotatingFileHandler',
-                                   'args': (LOG_PATH,'a','maxBytes=10000','backupCount=5'),
+                                   'args': (LOG_PATH,'a','maxBytes=100000','backupCount=5'),
                                    'formatter':'error',
                                    'level': 'logging.ERROR'}},
               'root': {'handlers': ('console', 'file'), 'level': 'DEBUG'}}

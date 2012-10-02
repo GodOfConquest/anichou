@@ -25,7 +25,7 @@ except AttributeError:
     #python < 2.7
     logging.config.fileConfig(settings.LOG_CONFIG_PATH)
     fileHandler = logging.handlers.RotatingFileHandler(
-        settings.LOG_PATH, mode='a', maxBytes=10000, backupCount=5)
+        settings.LOG_PATH, mode='a', maxBytes=100000, backupCount=5)
     fileHandler.setFormatter(logging.Formatter(
         settings.LOG_ERROR_FORMAT, settings.LOG_ERROR_DATE))
     logger = logging.getLogger('')

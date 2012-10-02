@@ -1,10 +1,9 @@
 
 import os, getopt, sys
 import json
-
+import logging
 # AniChou
-import settings
-
+from AniChou import settings
 
 def usage(prog):
     """
@@ -69,6 +68,16 @@ def options(prog, version, argv):
             given.setdefault("login", False)
         elif o == "-r":
             given.setdefault(None, {})["reset"] = True
+        elif o == "-f":
+            try:
+                service, filename = a.split(':', 1)
+                if not os.path.isfile(filename):
+                    logging.warning('{0} is not a file.'.format(filename))
+                    raise ValueError
+            except ValueError:
+                logging.warning('Format for file is <service>:<path>')
+                continue
+            given.setdefault('files', {})[service] = filename
         else:
             assert False, "getopt knew more than if"
     return given

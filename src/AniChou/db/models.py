@@ -21,7 +21,7 @@ LOCAL_STATUS_R = {
     u'plantowatch': 2,
     u'completed': 3,
     u'dropped': 4,
-    u'hold': 5,
+    u'hold': 5, u'on-hold': 5,
     u'partially': 6
 }
 
@@ -66,9 +66,11 @@ LOCAL_ANIME_SCHEMA = {
 
 class Anime(Model):
     _scheme = LOCAL_ANIME_SCHEMA
+    _unique = ('title', 'type', 'started')
 
-    def names(self):
-        return [self.titile] + self.synonyms
+    def get_names(self):
+        return [self.title] + (self.synonyms or [])
+    names = property(get_names)
 
     def save(self):
         self.my_updated = datetime.now()

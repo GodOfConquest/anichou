@@ -42,10 +42,10 @@ class Manager(object):
     @staticmethod
     def __filterfunc(item, key, value):
         (key, op) = key.partition('__')[::2]
-        operation = getattr(operator, op or 'eq')
         attribute = getattr(item, key)
-        if operation == 'in':
+        if op == 'in':
             return value in attribute
+        operation = getattr(operator, op, operator.eq)
         return operation(attribute, value)
 
     def __init__(self, model):
@@ -60,7 +60,7 @@ class Manager(object):
     data = property(__get_data)
 
     def all(self):
-        return self.data
+        return self.data[:]
 
     def get(self, **kwargs):
         r = self.filter(**kwargs)
@@ -74,22 +74,24 @@ class Manager(object):
         created = False
         try:
             obj = self.get(**kwargs)
-        except DoesNotExist:
+        except DoesNotExists:
             obj = self.__model(**kwargs)
             created = True
         return [obj, created]
 
     def filter(self, **kwargs):
-        ret = self.data
+        ret = self.all()
         for key, value in kwargs.iteritems():
             if not ret:
                 break
+            if value in ('*', None):
+                continue
             ret = filter(lambda x: self.__filterfunc(x, key, value), ret)
         return ret
 
     def add(self, obj):
         try:
-            self.get(obj.unique_fields)
+            self.get(**obj.unique_fields)
         except DoesNotExists:
             pass
         else:

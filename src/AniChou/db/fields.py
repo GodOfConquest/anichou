@@ -27,19 +27,20 @@ def from_type(t):
 
 
 class Field(object):
-    _value = None
-
     def __get__(self, caller):
-        return self._value
+        return getattr(caller, '_fields_dict', {}).get(self.name)
 
     def __set__(self, caller, value):
         caller._changed = True
-        self._value = self.to_python(value)
+        if not hasattr(caller, '_fields_dict'):
+            caller._fields_dict = {}
+        caller._fields_dict[self.name] = self.to_python(value)
 
     def to_python(self, value):
         return value
 
     def contribute_to_class(self, cls, name):
+        self.name = name
         cls.fields[name] = self
         setattr(cls, name, property(self.__get__, self.__set__))
 
@@ -54,9 +55,9 @@ class TypedField(Field):
         try:
             return self._types[-1](value)
         except IndexError:
-            raise ValueError(ERRORS['undefined_types'])
+            raise ValueError(seif.ERRORS['undefined_types'])
         except:
-            raise TypeError(ERRORS['bad_type'])
+            raise TypeError(seif.ERRORS['bad_type'])
 
 
 class NumberField(TypedField):
@@ -81,7 +82,7 @@ class DatetimeField(TypedField):
                 return self.strptime(value, format)
             except (ValueError, TypeError):
                 continue
-        raise ValueError(ERRORS['bad_type'])
+        raise ValueError(self.ERRORS['bad_type'])
 
     def strptime(self, value, format):
         return datetime.datetime.strptime(value, format)

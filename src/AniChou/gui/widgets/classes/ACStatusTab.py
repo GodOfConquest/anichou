@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore, QtGui
+from AniChou.db.models import LOCAL_TYPE
 
 
 class ACStatusTab(object):
@@ -22,38 +23,27 @@ class ACStatusTab(object):
         Clear table and add new data.
         """
         self.clear()
-        for key, anime in data.items():
-            # Extract series title
-            name = anime['title']
-            name = name.replace('&apos;', '\'')
+        for anime in data:
+            name = anime.title
 
             # Extract episodes/max and construct display string
-            if anime['episodes']:
-                max_episodes = anime['episodes']
+            if anime.episodes:
+                max_episodes = anime.episodes
             else:
                 max_episodes = '-'
-            current_episode = anime['status_episodes']
+            current_episode = anime.my_episodes
             episodes = (current_episode, max_episodes)
 
-            # Calculate progress bar
-            progress = 0
-            try:
-                progress = int(float(current_episode) / float(max_episodes) * 100)
-            except:
-                progress = 0
-
-            # Extract score
-            score = anime['status_score']
-
             # Construct row list and add it to the liststore
-            row = [name, anime['type'], anime['sources'], score,
-                    episodes, progress]
+            row = [anime.title, dict(LOCAL_TYPE)[anime.type],
+                   anime.sources, anime.my_score, episodes]
+            self.addRow(row)
 
             # Store key in row position
-            self.keylist.append(key)
+            self.keylist.append(anime)
 
     def addRow(self, data):
-        if len(data) < 6:
+        if len(data) < 5:
             raise ValueError('It must be at least 6 elements to fill row')
         table = self._table
         row = table.rowCount()
@@ -61,17 +51,24 @@ class ACStatusTab(object):
 
         # Title, sources, type
         for col in range(0, 3):
-            table.setItem(col, row, QtGui.QTableWidgetItem(data[col]))
+            table.setItem(row, col, QtGui.QTableWidgetItem(unicode(data[col])))
 
         # Rating
-        table.setItem(3, row, QtGui.QTableWidgetItem(data[3]))
+        table.setItem(row, 3, QtGui.QTableWidgetItem(data[3]))
 
         # Episodes
-        table.setItem(4, row, QtGui.QTableWidgetItem('/'.join(data[4])))
+        episodes = data[4]
+        table.setItem(row, 4, QtGui.QTableWidgetItem(
+                '/'.join([unicode(f) for f in episodes])))
 
         #Progress
-        progress = QtGui.QProgressBar()
-        progress.setRange(0, 100)
-        progress.setValue(data[5])
-        table.setCellWidget(4, row, progress)
+        # Calculate progress bar
+        try:
+            progress = int(float(episodes[0]) / float(episodes[1]) * 100)
+        except:
+            progress = 0
+        pbar = QtGui.QProgressBar()
+        pbar.setRange(0, 100)
+        pbar.setValue(progress)
+        table.setCellWidget(row, 5, pbar)
 

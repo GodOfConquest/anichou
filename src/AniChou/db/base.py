@@ -1,5 +1,5 @@
 
-from AniChou.db.fields import from_type
+from AniChou.db.fields import from_type, Field
 from AniChou.db.manager import Manager, AlreadyExists
 from AniChou.utils import classproperty
 
@@ -41,10 +41,7 @@ class Model(object):
 
     _unique = []
     _scheme = None
-    fields = {}
-
-    _changed = False
-    _inlist = False
+    fields = {}     # Fields as {name: filed}
 
     @property
     def unique_fields(self):
@@ -54,12 +51,16 @@ class Model(object):
         return fields
 
     def __init__(self, **kwargs):
-        for key, value in kwargs:
-            field = getattr(self, key)
-            if not isinstance(Field, field):
-                raise TypeError(
-                    'Cannot overwrite non-field property {0}.'.format(key))
-            field.set(value)
+        self._fields_dict = {}
+        self._changed = False
+        self._inlist = False
+        self.update(kwargs)
+
+    def update(self, updates):
+        for key, value in updates.iteritems():
+            if not hasattr(self, key):
+                raise AttributeError('Cannot change this property')
+            setattr(self, key, value)
 
     def save(self):
         self._changed = False
