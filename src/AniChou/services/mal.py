@@ -20,7 +20,6 @@ class Mal(DefaultService):
         Log in to MyAnimeList server.
         Returns: True on success, False on failure
         """
-
         # prepare login data
         login_url = 'http://myanimelist.net/login.php'
         login_data = urllib.urlencode({

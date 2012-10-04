@@ -53,6 +53,7 @@ class DefaultService(object):
                         urllib2.HTTPCookieProcessor(LWPCookieJar()))
         self.opener.addheaders = [('User-Agent', u'Anichou/{0} {1}'.format(
                         self.__class__.__name__, settings.VERSION))]
+        self._logined = False
 
         if self.initsync:
             self.sync()
@@ -79,46 +80,31 @@ class DefaultService(object):
     def pushUrl(a):
         raise NotImplementedError('This function must be implemented in subclass')
 
-    def save(self):
-        """
-        Only saves the current state to disk w/o network activity.
-        """
-        #self.local_db.set_db(self.db)
-        pass
-
-    def sync(self):
+    def sync(self, filename=None):
         """
         Syncronize local anime database with the service server.
         (fetch -> compare -> push -> update local)
-
         Return:
-        nested dict of remote updates with ASCII-fied series titles as
-        keys and a list of keys that got deleted on the service server.
+            True on success, False for bad list
         """
-        # Three way switch: login (un)successfull or don't even try.
-        if not self.anonymous and not self.login():
-            logging.warn('Login to %s server failed..', self.name)
+        if filename:
+            remote_list = open(filename).read()
+        else:
+            remote_list = self.fetchList()
+
+        if not remote_list:
             return False
 
-        # Get remote list and filter it
-        (remote_updates, local_updates) = self.getList()
-        self.logChanges(remote_updates, local_updates)
-        if not self.anonymous:
-            self.pushList(local_updates)
-        else:
-            logging.warn('Your local data goes ouf of sync')
-        Anime.objects.save()
-
-    def loadFile(self, filename):
-        """
-        Syncronize from given file.
-        """
-        #TODO: merge with sync
-        remote_list = open(filename).read()
+        # parse remote list and filter it
         remote_list = self.parseList(remote_list)
         (remote_updates, local_updates) = self.convertList(remote_list)
         self.logChanges(remote_updates, local_updates)
+
+        # Try to update remote list
+        if not self.pushList(local_updates):
+            logging.warn('Your local data goes ouf of sync')
         Anime.objects.save()
+        return True
 
     def sendRequest(self, link, data):
         try:
@@ -133,6 +119,11 @@ class DefaultService(object):
             return False
         return response
 
+    def logined(self):
+        if self._logined is None:
+            self._logined = self.login()
+        return self._logined
+
     def login(self):
         """
         Log in to service server.
@@ -140,20 +131,15 @@ class DefaultService(object):
         """
         raise NotImplementedError('Must be implemented in subclass')
 
-    def getList(self):
-        """
-        Retrieve Anime list from service server and convert it to
-        uniform local data format.
-        Returns: dictionary object.
-        """
-        remote_list = self.fetchList()
-        return self.convertList(self.parseList(remote_list))
-
     def fetchList(self):
         """
         Retrieve anime list from service server.
         Returns: remote data in its format.
         """
+        # Three way switch: login (un)successfull or don't even try.
+        if not self.anonymous and not self.logined():
+            logging.warn('Login to %s server failed..', self.name)
+            return None
         fetch_response = self.opener.open(self.fetchURL())
         # TODO whatever error open raises.
         return unicode(fetch_response.read(), 'utf-8', 'replace')
@@ -220,12 +206,13 @@ class DefaultService(object):
 
     def pushList(self, local_updates):
         """
-        Updates every entry in the local updates dictionary to the server.
-        Should be called after the local updates are determined with the
-        _filterSyncChanges function.
+        Updates every entry in the local updates dictionary on the server.
         Returns:
             True on success, False on failure
         """
+        if self.anonymous or not self.logined():
+            return False
+
         for anime in local_updates:
             postdata = urllib.urlencode(self.makePost(anime))
             response = self.sendRequest(self.pushURL(anime), postdata)

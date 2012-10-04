@@ -1,5 +1,6 @@
 
 import logging
+import os
 
 from AniChou import settings
 from AniChou import signals
@@ -22,7 +23,8 @@ def chooser(name, classname=None):
 
 class Manager(object):
     ERROR_MESSAGES = {
-        'not_found': 'Service {0} not found in loaded services. File skipped.',
+        'bad_service': 'Service {0} not found in loaded services. Skipped.',
+        'bad_file': 'Path {0} is not a file. Skipped.',
     }
 
     services = []
@@ -31,17 +33,29 @@ class Manager(object):
         self.config = config
         self.main = None
         self.loadServices()
+        self.update_slot = signals.Slot('manager_sync', self.sync)
         if hasattr(config, 'files'):
-            for s, fn in config.files.items():
-                try:
-                    service = filter(lambda x: x.internalname == s,
-                                        self.services)[0]
-                except IndexError:
-                    logging.warning(ERROR_MESSAGES['not_found'].format(service))
-                    continue
-                service.loadFile(fn)
+            self.syncFiles()
             del config['files']
-            Anime.objects.save()
+
+    def syncFiles(self):
+        files = {}
+        for s, fn in self.config.files.items():
+            try:
+                service = filter(lambda x: x.internalname == s,
+                                    self.services)[0]
+                if not os.path.isfile(fn):
+                    raise OSError(self.ERROR_MESSAGES['bad_file'].format(fn))
+            except IndexError:
+                logging.warning(self.ERROR_MESSAGES['bad_service'].format(service))
+                continue
+            except OSError, e:
+                logging.warning(e)
+                continue
+            files[service] = fn
+        # Sync with files after app is ready.
+        if files:
+            signals.emit(signals.Signal('manager_sync'), None, files)
 
     def loadServices(self):
         """
@@ -88,31 +102,13 @@ class Manager(object):
             service.stop()
             self.services.remove(s)
 
-    def sync(self):
-        for name in self.syncNext():
-            if type(name) == bool:
-                if not name:
-                    notify('Syncing failed..')
-                else:
-                    notify('Syncing Done.')
-            else:
-                notify('Syncing with {0}..'.format(name))
-        signals.emit(signals.Signal('gui_tables_update'))
-
-    def syncNext(self):
-        """
-        This is iterator through all enabled services
-        """
+    def sync(self, files={}):
         for service in self.services:
-            yield service.name
-            try:
-                if not service.sync():
-                    yield False
-            except Exception, e:
-                logging.error("""Exception in sync:
-{0}""".format(e))
-                yield False
-        yield True
+            notify('Syncing with {0}..'.format(service.name))
+            if not service.sync(filename=files.get(service)):
+                notify('Syncing failed..')
+        notify('Syncing Done.')
+        signals.emit(signals.Signal('gui_tables_update'))
 
     def updateConfig(self):
         """Reload config"""

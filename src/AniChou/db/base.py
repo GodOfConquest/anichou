@@ -74,5 +74,3 @@ class Model(object):
         self.objects.delete(self)
         self._inlist = False
 
-
-

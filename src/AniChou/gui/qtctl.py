@@ -93,7 +93,6 @@ class Main(QtGui.QMainWindow):
         Update all anime tables views from database.
         This is used on initialization and after syncronization.
         """
-
         statuses = {}
         # Separate anime data according to their status
         for item in Anime.objects.all():
