@@ -4,7 +4,7 @@ import logging
 
 from PyQt4 import QtCore, QtGui
 
-abstract_classes = []
+abstract_classes = ['ACSpinBoxDelegate']
 
 export_classes = ['ACStatusTab', 'ACServiceTab',
                   'ACSimpleInputWidget', 'ACComboBoxWidget']

@@ -52,7 +52,7 @@ class DefaultService(object):
                         urllib2.HTTPCookieProcessor(LWPCookieJar()))
         self.opener.addheaders = [('User-Agent', u'Anichou/{0} {1}'.format(
                         self.__class__.__name__, settings.VERSION))]
-        self._logined = False
+        self._logined = None
 
         if self.initsync:
             self.sync()
@@ -64,8 +64,7 @@ class DefaultService(object):
         self.username = kwargs.get('username', config.get('username'))
         self.password = kwargs.get('password', config.get('password'))
         self.initsync = kwargs.get('initsync', self.base_config.startup.get('sync'))
-        self.anonymous = bool(config.get('login', True))
-        self.mirror = config.get('mirror', None)
+        self.anonymous = not bool(self.username and self.password)
 
     def stop(self):
         """

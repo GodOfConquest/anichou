@@ -94,3 +94,4 @@ class ListField(TypedField):
 
 class DictField(TypedField):
     _types = (dict,)
+
