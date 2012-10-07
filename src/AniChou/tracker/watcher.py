@@ -3,7 +3,7 @@ import threading
 import time
 from AniChou import settings
 from AniChou import signals
-from AniChou.db.models import LOCAL_STATUS_R
+from AniChou.db.data import LOCAL_STATUS_R
 from AniChou.tracker import players
 from AniChou.tracker.recognizing import recognize, extract_episode
 

@@ -25,7 +25,6 @@ class DefaultService(object):
 
     name = "Dummy service"
     decode_schema = {}
-    decodable_fields = {}
 
     def __init__(self, config=None, **kw):
         """
@@ -106,15 +105,21 @@ class DefaultService(object):
         Anime.objects.save()
         return True
 
-    def sendRequest(self, link, data):
+    def sendRequest(self, link, data={}):
+        """
+        Send request to the server. Return responce.
+        """
         try:
-            response = self.opener.open(link, data)
+            if data:
+                response = self.opener.open(link, data)
+            else:
+                response = self.opener.open(link)
         except urllib2.URLError, e:
             if hasattr(e, 'reason'):
-                logging.error(u'Failed to reach %s server. Reason: %s',
+                logging.error('Failed to reach %s server. Reason: %s',
                     self.name, e.reason)
             elif hasattr(e, 'code'):
-                logging.error(u'The server couldn\'t fulfill the request. Error code %d',
+                logging.error('The server couldn\'t fulfill the request. Error code %d',
                     e.code)
             return False
         return response
@@ -140,9 +145,10 @@ class DefaultService(object):
         if not self.anonymous and not self.logined():
             logging.warn('Login to %s server failed..', self.name)
             return None
-        fetch_response = self.opener.open(self.fetchURL())
-        # TODO whatever error open raises.
-        return unicode(fetch_response.read(), 'utf-8', 'replace')
+        fetch_response = self.sendRequest(self.fetchURL())
+        if fetch_response:
+            return fetch_response.read()
+        return []
 
     def parseList(self, remote_list):
         """
@@ -186,16 +192,14 @@ class DefaultService(object):
         convert list as schema parameter.
         Returns: converted dictionary
         """
+        schema = getattr(self, 'decode_schema', schema)
         if not schema:
             raise NotImplementedError('Must be called with convert list')
         ret = {}
         for key, value in schema:
             if not key in item.keys():
                 continue # Schema key not found, schema error maybe?
-            if value in self.decodable_fields:
-                ret[value] = self.decodeField(value, item[key])
-            else:
-                ret[value] = item[key]
+            ret[value] = self.decodeField(value, item[key])
         return ret
 
     def decodeField(self, name, value):

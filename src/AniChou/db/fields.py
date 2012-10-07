@@ -55,9 +55,9 @@ class TypedField(Field):
         try:
             return self._types[-1](value)
         except IndexError:
-            raise ValueError(seif.ERRORS['undefined_types'])
-        except:
-            raise TypeError(seif.ERRORS['bad_type'])
+            raise ValueError(self.ERRORS['undefined_types'])
+        except Exception as e:
+            raise TypeError(self.ERRORS['bad_type'] + unicode(e))
 
 
 class NumberField(TypedField):

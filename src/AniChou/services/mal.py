@@ -2,10 +2,11 @@
 import re
 import urlparse
 import urllib
+import json
 import BeautifulSoup
 
 from datetime import date, datetime
-from AniChou.db.models import LOCAL_STATUS_R, LOCAL_TYPE_R
+from AniChou.db.data import LOCAL_STATUS_R, LOCAL_TYPE_R, LOCAL_AIR_R
 from AniChou.services.default import DefaultService
 from AniChou.services.data import mal as data
 
@@ -13,59 +14,76 @@ from AniChou.services.data import mal as data
 class Mal(DefaultService):
 
     name = "myanimelist.net"
-    decodable_fields = ('type', 'my_status', 'sources')
+    decode_schema = data.anime_convert
 
     def login(self):
         """
-        Log in to MyAnimeList server.
-        Returns: True on success, False on failure
+        This function checks credentials on the server and setup
+        authorization header.
+        Returns: True on success, False on failure.
         """
         # prepare login data
-        login_url = 'http://myanimelist.net/login.php'
-        login_data = urllib.urlencode({
-                'username': self.username,
-                'password': self.password,
-                'cookie': 1,
-                'sublogin': 'Login'})
 
-        # try to connect and authenticate with MyAnimeList server
-        login_response = self.sendRequest(login_url, login_data)
-        if not login_response:
-            return False
+        login_url = 'http://mal-api.com/account/verify_credentials'
+        headers = filter(lambda hdr: hdr[0] != 'Authorization', self.opener.addheaders)
 
-        login_response = login_response.read()
+        encoded = base64.encodestring('%s:%s' % (self.username, self.password))[:-1]
+        headers.append(('Authorization', 'Basic %s' % encoded))
 
-        # check if login was successful
-        if not login_response.count('<div class="badresult">'):
-            if login_response == "Couldn't open s-database. Please contact Xinil.":
-                return False
+        self.opener.addheaders = headers
+
+        # try to check credentials on server
+        login_response = self.sendRequest(login_url)
+
+        if login_response and getattr(login_response, 'code', 0) == 200:
             return True
-        else:
-            return False
 
-    def fetchURL(self, status = 'all', typ = None):
+        return False
+
+    def fetchURL(self):
         """
-        Safely generate a URL to get XML.
-        Type may be 'manga'.
+        Safely generate a URL to get list.
         """
-        # Example taken from the site.
-        template = 'http://myanimelist.net/malappinfo.php?u=Wile&status=all&type=manga'
-        # Make tuple mutable.
-        parts = list(urlparse.urlparse(template))
-        # New parameters.
-        query = {'u': self.username}
-        if status:
-            query['status'] = status
-        if typ:
-            query['type'] = typ
-        # urlencode would literally output 'None'.
-        parts[4] = urllib.urlencode(query)
-        return urlparse.urlunparse(parts)
+        return 'http://mal-api.com/animelist/{0}'.format(self.username)
 
     def parseList(self, fetch_response):
         """
-        Process Anime XML from MyAnimeList server.
+        Process Anime from MyAnimeList server.
+        Check if it is a json or xml and use correct processor.
         Returns: dictionary object.
+        """
+        try:
+            return self.parseJSON(fetch_response)
+        except IOError:
+            return self.parseXML(fetch_response)
+
+    def parseJSON(self, fetch_response):
+        """
+        Process Anime json object from MyAnimeList server.
+        Returns: list of dictionary objects.
+        """
+        try:
+            anime_nodes = json.loads(fetch_response)
+        except ValueError as e:
+            raise IOError('Not a json:\n{0}'.format(e))
+
+        ac_remote_anime_list = []
+        for anime in anime_nodes.get('anime', {}):
+            ac_node = {}
+            for node, local_node in data.anime_convert_json_default:
+                typ = data.anime_schema.get(local_node)
+                if not typ:
+                    continue
+                value = anime.get(node)
+                ac_node[local_node] = self.parseNode(value, typ)
+            # add node entry to the resulting nodelist
+            ac_remote_anime_list.append(ac_node)
+        return ac_remote_anime_list
+
+    def parseXML(self, fetch_response):
+        """
+        Process Anime XML from MyAnimeList server.
+        Returns: list of dictionary objects.
         Ways in which the ouput of malAppInfo is *not* XML:
         Declared as UTF-8 but contains illegal byte sequences (characters)
         Uses entities inside CDATA, which is exactly the wrong way round.
@@ -97,26 +115,7 @@ class Mal(DefaultService):
                     value = re.sub(r'&(\w+);', entity, value)
                 except AttributeError:
                     continue
-                if typ is datetime:
-                    # process my_last_updated unix timestamp
-                    ac_node[node] = datetime.fromtimestamp(int(value))
-                elif typ is int:
-                    # process integer slots
-                    ac_node[node] = int(value)
-                elif typ in (date, datetime):
-                    if value != '0000-00-00':
-                        try:
-                            ac_node[node] = datetime.strptime(value, '%Y-%m-%d')
-                            if typ is date:
-                                ac_node[node] = ac_node[node].date()
-                        except ValueError as e:
-                            logging.warning('Error in parsing:\n{0}'.format(e))
-                    else:
-                        ac_node[node] = typ(1,1,1)
-                else:
-                    # process string slots
-                    ac_node[node] = value
-
+                ac_node[node] = self.parseNode(value, typ)
             # add node entry to the resulting nodelist
             ac_remote_anime_list.append(ac_node)
 
@@ -124,8 +123,27 @@ class Mal(DefaultService):
         # [{<anime_data_schema-fields>: <values>}, ...]
         return ac_remote_anime_list
 
-    def decode(self, item):
-        return super(Mal, self).decode(item, data.anime_convert)
+    def parseNode(self, value, typ):
+        if typ is datetime:
+            # process my_last_updated unix timestamp
+            ac_node = datetime.fromtimestamp(int(value))
+        elif typ is int:
+            # process integer slots
+            ac_node = int(value)
+        elif typ in (date, datetime):
+            if value and value != '0000-00-00':
+                try:
+                    ac_node = datetime.strptime(value, '%Y-%m-%d')
+                    if typ is date:
+                        ac_node = ac_node.date()
+                except ValueError as e:
+                    logging.warning('Error in parsing:\n{0}'.format(e))
+            else:
+                ac_node = typ(1,1,1)
+        else:
+            # process string slots
+            ac_node = value
+        return ac_node
 
     def decodeField(self, name, value):
         if name == 'sources':
@@ -134,6 +152,8 @@ class Mal(DefaultService):
             return LOCAL_TYPE_R[value.lower()]
         elif name == 'my_status':
             return LOCAL_STATUS_R[value.lower()]
+        elif name == 'air':
+            return LOCAL_AIR_R[value.lower()]
         return value
 
     def encode(self, item):

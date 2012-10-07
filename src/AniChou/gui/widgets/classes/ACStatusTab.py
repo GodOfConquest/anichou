@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore, QtGui
-from AniChou.db.models import LOCAL_TYPE
+from AniChou.db.data import LOCAL_TYPE
 
 
 class ACStatusTab(object):
@@ -14,7 +14,7 @@ class ACStatusTab(object):
     def clear(self):
         """ Removes all rows from table """
         while self._table.rowCount():
-            self._table.removeRow(1)
+            self._table.removeRow(0)
 
     def updateData(self, data):
         """
@@ -25,6 +25,7 @@ class ACStatusTab(object):
         self.clear()
         for anime in data:
             self.addRow(anime)
+        self._table.rowCount()
 
     def addRow(self, data):
         """

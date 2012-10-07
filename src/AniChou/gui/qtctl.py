@@ -20,28 +20,19 @@ def get_app(argv):
     return QtGui.QApplication(argv)
 
 
-class SupportThread(QtCore.QThread):
-    """
-    This thread does all application additional logic like processing
-    application-level signals.
-    """
-    _exit = False
-    def run(self):
-        while not self._exit:
-            signals.process()
-            time.sleep(0.01)
-
-
 class Main(QtGui.QMainWindow):
 
     def __init__(self, manager, cfg):
         self.manager = manager
         self.cfg = cfg
-        self.supportThread = SupportThread()
         QtGui.QMainWindow.__init__(self)
         self.ui = Ui_AniChou()
         self.ui.setupUi(self)
         self._stabs = self.ui.statusTabs
+
+        # GUI backend must process application-level signals if it has
+        # its own main loop
+        self.supportTimer = QtCore.QTimer(self)
 
         # Create tabs
         for number, title in LOCAL_STATUS[1:]:
@@ -64,8 +55,15 @@ class Main(QtGui.QMainWindow):
         self.tracker.connect('stop_tracker')
         self.toggleTracker(cfg.startup.get('tracker'))
         self.updateFromDB()
-        self.supportThread.start()
+        self.connect(self.supportTimer, QtCore.SIGNAL('timeout()'), self.supportThread);
+        self.supportTimer.start(0.01)
 
+
+    def supportThread(self):
+        """
+        This function processes application-level signals.
+        """
+        signals.process()
 
     #@signals.Slot('notify')
     def notify(self, message):

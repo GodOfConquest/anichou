@@ -19,7 +19,7 @@ anime_schema = {
     'series_synonyms': unicode,
     'series_type': unicode,
     'series_episodes': int,
-    'series_status': int,
+    'series_status': unicode,
     'series_start': date,
     'series_end': date,
     'series_image': unicode,
@@ -35,12 +35,12 @@ anime_schema = {
 }
 
 
-anime_convert = [
+anime_convert = (
     ('series_title', 'title'),
     ('series_synonyms', 'synonyms'),
     ('series_type', 'type'),
     ('series_episodes', 'episodes'),
-    ('series_status', 'status'),
+    ('series_status', 'air'),
     ('series_start',  'started'),
     ('series_end', 'ended'),
     ('my_watched_episodes', 'my_episodes'),
@@ -49,7 +49,62 @@ anime_convert = [
     ('my_score', 'my_score'),
     ('my_status', 'my_status'),
     ('my_last_updated', 'my_updated')
-]
+)
+
+anime_convert_json_default = (
+    ('id', 'series_animedb_id'),
+    ('title', 'series_title'),
+    ('other_titles', 'series_synonyms'),
+    ('type', 'series_type'),
+    ('image_url', 'series_image'),
+    ('episodes', 'series_episodes'),
+    ('status', 'series_status'),
+    ('start_date', 'series_start'),
+    ('end_date', 'series_end'),
+    ('listed_anime_id', 'my_id'),
+    ('watched_episodes', 'my_watched_episodes'),
+    ('score', 'my_score'),
+    ('watched_status', 'my_status')
+)
+
+### This is schema of data recieved using mal-api.com
+anime_schema_json = {
+    'id': int,
+    'title': unicode,
+    'other_titles': dict,
+    'synopsis': unicode,
+    'type': unicode,
+    'rank': int,
+    'popularity_rank': int,
+    'image_url': unicode,
+    'episodes': int,
+    'status': unicode,
+    'start_date': unicode,
+    'end_date': unicode,
+    'genres': list,
+    'tags':list,
+    'classification': unicode,
+    'members_score': float,
+    'members_count': int,
+    'favorited_count': int,
+    'manga_adaptations': list,
+    'prequels': list,
+    'sequels': list,
+    'side_stories': list,
+    'parent_story': list,
+    'character_anime': list,
+    'spin_offs': list,
+    'summaries': list,
+    'alternative_versions': list,
+    'listed_anime_id': int,
+    'watched_episodes': int,
+    'score': 0,
+    'watched_status': unicode
+}
+
+
+## This is old, probably obsolete data inhirited from original AniChou.
+## It has no usage now.
 
 
 ## Here is a sample of the data representation the myanimelist module produces,
