@@ -58,7 +58,7 @@ PLUGIN_PATH = path.join(USER_PATH, 'plugins')
 TIMEOUT = 0.001
 
 # Interval between two tracking attempts
-TRACKING_INTERVAL = 1000
+TRACKING_INTERVAL = 300
 
 # Recognizing minimum matching level
 MATCHING_LEVEL = 0.3

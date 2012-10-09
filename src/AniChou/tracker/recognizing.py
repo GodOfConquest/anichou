@@ -53,7 +53,7 @@ def recognize(filename):
     # The essence machting algorithm
     for anime in Anime.objects.all():
         ratios = []
-        for anime_name in anime.names():
+        for anime_name in anime.names:
             matcher.set_seq1(anime_name)
             ratios.append(matcher.ratio())
         matching.append((max(ratios), anime))
@@ -68,7 +68,7 @@ def recognize(filename):
     return None
 
 
-def clean_name(name):
+def clean_name(filename):
     """Get rid of hashtags, subgroup, codec and such"""
     # Should match all between [ , ], (, ) and gets rid of the file extension.
     # Monser RegEx ftw! :D
@@ -84,7 +84,7 @@ def extract_name(filename):
     """Getting and returning anime name"""
 
     # Remove path from filename
-    meta = metadata(filename)
+    meta = metadata.parse(filename)
     #TODO: full usage of metadata.
     if meta.title:
         name = meta.title
@@ -94,7 +94,7 @@ def extract_name(filename):
     # Remove excess info
     name = clean_name(name)
     # Remove episode number
-    name = re.sub("(ep\.?)?\s?\d+", "", re.I)
+    name = re.sub("(ep\.?)?\s?\d+", "", name, re.I)
     # Remove all digits
     name = re.sub("[\d\._]{1,}", "", name)
     # Get rid of scores

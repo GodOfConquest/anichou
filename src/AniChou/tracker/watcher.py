@@ -26,7 +26,7 @@ class Watcher(threading.Thread):
     def run(self):
         while not self._exit:
             track = players.get_playing(settings.PLAYERS, self.cfg.search_dirs)
-            for key, value in track:
+            for key, value in track.items():
                 anime = recognize(key)
                 # FIXME: does watcher must update anime by itself?
                 # Maybe change to some signal
@@ -45,4 +45,5 @@ class Watcher(threading.Thread):
                     anime.my_updated = datetime.datetime.now()
                 anime.save()
             time.sleep(settings.TRACKING_INTERVAL)
+
 
