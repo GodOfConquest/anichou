@@ -4,12 +4,12 @@ import logging
 
 from PyQt4 import QtCore, QtGui
 
-abstract_classes = ['ACSpinBoxDelegate', 'ACComboBoxDelegate']
+abstract_classes = ['ACSpinBoxDelegate', 'ACComboBoxDelegate',
+                    'ACStandardItem', 'ACStandardItemModel']
 
-export_classes = ['ACStatusTab', 'ACServiceTab',
-                  'ACSimpleInputWidget', 'ACComboBoxWidget']
+export_classes = ['ACServiceTab', 'ACSimpleInputWidget', 'ACComboBoxWidget']
 
-extern_classes = ['ACDirectoryListWidget', 'ACTextDialog',
+extern_classes = ['ACStatusTab', 'ACDirectoryListWidget', 'ACTextDialog',
                   'ACAboutDialog', 'ACPreferencesDialog']
 
 

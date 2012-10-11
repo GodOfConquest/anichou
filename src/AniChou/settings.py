@@ -65,3 +65,30 @@ MATCHING_LEVEL = 0.3
 
 # List of players processes names for tracking
 PLAYERS = ['mplayer', 'totem']
+
+
+# GUI Settings
+
+GUI_COLUMNS = {
+    'name': (
+        (0, 'changed'),
+        (1, 'title'),
+        (2, 'type'),
+        (3, 'sources'),
+        (4, 'my_score'),
+        (5, 'episodes'),
+        (6, 'progress')
+    ),
+    'title': (
+        (0, ''),
+        (1, 'Title'),
+        (2, 'Type'),
+        (3, 'Sources'),
+        (4, 'Rating'),
+        (5, 'Episodes'),
+        (6, 'Progress')
+    ),
+    'size': (
+        (0, 7), (1, 300), (2, 50), (3, 60), (4, 50), (5, 70)
+    )
+}

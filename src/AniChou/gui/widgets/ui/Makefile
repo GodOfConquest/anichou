@@ -1,7 +1,6 @@
 
 WGT =   Ui_ACAboutDialog.ui Ui_ACTextDialog.ui Ui_ACPreferencesDialog.ui\
-	Ui_ACStatusTab.ui Ui_ACServiceTab.ui \
-	Ui_ACSimpleInputWidget.ui Ui_ACComboBoxWidget.ui
+	Ui_ACServiceTab.ui Ui_ACSimpleInputWidget.ui Ui_ACComboBoxWidget.ui
 
 SCRIPTS = $(WGT:.ui=.py)
 

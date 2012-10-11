@@ -9,7 +9,7 @@ from AniChou import signals
 from AniChou.db.models import Anime
 from AniChou.gui.Main import Ui_AniChou
 from AniChou.gui.widgets import ( ACStatusTab, ACAboutDialog,
-                                  ACPreferencesDialog )
+            ACPreferencesDialog, ACStandardItemModel, ACStandardItem )
 from AniChou.services.data.base import LOCAL_STATUS
 
 
@@ -28,17 +28,11 @@ class Main(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         self.ui = Ui_AniChou()
         self.ui.setupUi(self)
-        self._stabs = self.ui.statusTabs
+        self.createTabs()
 
         # GUI backend must process application-level signals if it has
         # its own main loop
         self.supportTimer = QtCore.QTimer(self)
-
-        # Create tabs
-        for number, title in LOCAL_STATUS[1:]:
-            tab = ACStatusTab(self._stabs)
-            self._stabs.addTab(tab, title)
-            tab.status = number
 
         # Sync on start
         if self.cfg.startup.get('sync'):
@@ -57,6 +51,27 @@ class Main(QtGui.QMainWindow):
         self.updateFromDB()
         self.connect(self.supportTimer, QtCore.SIGNAL('timeout()'), self.supportThread);
         self.supportTimer.start(0.01)
+
+    def createTabs(self):
+        # Create tabs
+        stabs = self.ui.statusTabs
+        self.model = model = ACStandardItemModel()
+        parentItem = self.model.invisibleRootItem()
+        columns = len(settings.GUI_COLUMNS['name']) - 1
+        for number, title in LOCAL_STATUS:
+            # Add model group
+            item = QtGui.QStandardItem(QtCore.QString(number))
+            parentItem.appendRow(item)
+            item.insertColumns(1, columns)
+            # Do not create tab for None status
+            if not number:
+                continue
+
+            # Create tab and set its model
+            index = self.model.index(model.rowCount() - 1, 0)
+            tab = ACStatusTab(stabs, model, index);
+            tab.status = number
+            stabs.addTab(tab, title)
 
 
     def supportThread(self):
@@ -91,16 +106,13 @@ class Main(QtGui.QMainWindow):
         Update all anime tables views from database.
         This is used on initialization and after syncronization.
         """
-        statuses = {}
-        # Separate anime data according to their status
+        leafs = {}
+        for number, title in LOCAL_STATUS:
+            leafs[number] = self.model.findItems(QtCore.QString(number))[0]
         for item in Anime.objects.all():
             status = item.my_status
-            if status not in statuses:
-                statuses[status] = []
-            statuses[status].append(item)
-
-        for i in range(0, self._stabs.count()):
-            self._stabs.widget(i).updateData(statuses.get(i+1, {}))
+            if status in leafs.keys():
+                leafs[status].appendRow(ACStandardItem(item))
 
     #@signals.Slot('set_track_message')
     def setTrackMessage(self, message=''):
