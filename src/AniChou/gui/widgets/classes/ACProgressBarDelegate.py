@@ -2,9 +2,10 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QStyle, QApplication
+from AniChou.gui.widgets import ACReadOnlyDelegate
 
 
-class ACProgressBarDelegate(QtGui.QItemDelegate):
+class ACProgressBarDelegate(ACReadOnlyDelegate):
 
     def paint(self, painter, option, index):
         # Set up a QStyleOptionProgressBar to precisely mimic the

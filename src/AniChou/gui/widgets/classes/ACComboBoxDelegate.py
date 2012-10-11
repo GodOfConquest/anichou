@@ -1,28 +1,23 @@
-
+# -*- coding: utf-8 -*
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import Qt
 
 
 class ACComboBoxDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, parent=None, values=None):
-        QtGui.QItemDelegate.__init__(self, parent)
-        self.setValues(values)
-
-    def setValues(self, values=None):
-        self.values = values
-
     def createEditor(self, parent, option, index):
         editor = QtGui.QComboBox(parent)
-        if self.values:
-            editor.addItems(self.values)
+        values = index.data(Qt.DecorationRole).toPyObject()
+        editor.addItems(values)
         return editor
 
     def setEditorData(self, editor, index):
-        value = index.model().data(index, QtCore.Qt.EditRole).toInt()[0]
-        editor.setValue(value)
+        value = index.data(Qt.EditRole).toPyObject()
+        value = editor.findText(str(value))
+        if value >= 0:
+            editor.setCurrentIndex(value)
 
-    def setModelData(self, spinBox, model, index):
-        spinBox.interpretText()
-        value = spinBox.value()
-        model.setData(index, value, QtCore.Qt.EditRole)
+    def setModelData(self, editor, model, index):
+        value = str(editor.currentText())
+        model.setData(index, value, Qt.EditRole)

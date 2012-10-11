@@ -90,5 +90,9 @@ GUI_COLUMNS = {
     ),
     'size': (
         (0, 7), (1, 300), (2, 50), (3, 60), (4, 50), (5, 70)
+    ),
+    'controls': (
+        (0, 'Color'), (4, 'ComboBox'), (5, 'SpinBox'), (6, 'ProgressBar')
     )
+
 }
