@@ -107,12 +107,41 @@ class Main(QtGui.QMainWindow):
         This is used on initialization and after syncronization.
         """
         leafs = {}
-        for number, title in LOCAL_STATUS:
-            leafs[number] = self.model.findItems(QtCore.QString(number))[0]
-        for item in Anime.objects.all():
+        statuses = list(dict(LOCAL_STATUS).keys())
+        objects = set(Anime.objects.all())
+        orphans = {}
+        for number in statuses:
+            leafs[int(number)] = parent = self.model.findItems(QtCore.QString(number))[0]
+            for row in range(0, parent.rowCount()):
+                child = parent.child(row)
+                # Remove item from model list
+                try:
+                    objects.remove(child.dbmodel)
+                except KeyError:
+                    # Item not in the model, remove it.
+                    parent.takeRow(row)
+                    continue
+                # Check if we need to move it to another
+                model_status = int(child.dbmodel.my_status)
+                if number != model_status:
+                    if model_status not in orphans.keys():
+                        orphans[model_status] = set()
+                    # Remove rows with changed status
+                    orphans[model_status].append(parent.takeRow(row))
+
+        # Move old rows to new place
+        for key, values in orphans:
+            if not key in leafs:
+                logging.error('Bad status {}. Items removed.'.format(key))
+            leafs[key].appendRows(values)
+
+        # Create new rows
+        for item in objects:
             status = item.my_status
-            if status in leafs.keys():
-                leafs[status].appendRow(ACStandardItem(item))
+            label = QtCore.QString(
+                '{0}:{1}'.format(item.__class__.__name__, item.pk))
+            leafs[status].appendRow(ACStandardItem(label, item))
+
 
     #@signals.Slot('set_track_message')
     def setTrackMessage(self, message=''):

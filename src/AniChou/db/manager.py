@@ -53,14 +53,14 @@ class Manager(object):
 
     def __get_data(self):
         try:
-            return list(self.db[self.__model])
+            return set(self.db[self.__model])
         except KeyError:
-            self.db[self.__model] = []
-        return []
+            self.db[self.__model] = set()
+        return set()
     data = property(__get_data)
 
     def all(self):
-        return self.data[:]
+        return list(self.data)
 
     def get(self, **kwargs):
         r = self.filter(**kwargs)
@@ -97,8 +97,8 @@ class Manager(object):
         else:
             raise AlreadyExists
         if self.__model not in self.db.keys():
-            self.db[self.__model] = []
-        self.db[self.__model].append(obj)
+            self.db[self.__model] = set()
+        self.db[self.__model].add(obj)
 
     def save(self):
         self.db.write(self.data)

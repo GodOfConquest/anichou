@@ -45,16 +45,14 @@ if not os.path.isdir(settings.USER_PATH):
 
 # Run command line option parser and configuration parser
 cfg = BaseConfig()
-
-service = Manager(config=cfg)
 tracker.set_config(cfg)
+
 
 ## RUN THE APPLICATION
 if cfg.startup.get('gui'):
     ## ONLY RUN GUI IF CLI OPTION NOT SET ##
-    gui.Qt(service, cfg)
-    #import AniChou.gtkctl
-    #gui = AniChou.gtkctl.guictl(service, cfg)
+    with Manager(config=cfg) as service:
+        gui.Qt(service, cfg)
 else:
     logging.warn('no-gui option set')
 

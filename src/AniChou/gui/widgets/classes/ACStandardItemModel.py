@@ -3,7 +3,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from AniChou import settings
-from AniChou.db.data import LOCAL_TYPE
+from AniChou.db.data import LOCAL_TYPE, LOCAL_STATUS_R
 
 
 LOCAL_TYPE_DICT = dict(LOCAL_TYPE)
@@ -81,8 +81,10 @@ class ACStandardItemModel(QtGui.QStandardItemModel):
     def cell_episodes(self, anime):
         # Extract episodes/max and construct display string
         episodes = []
-        if anime.my_episodes:
-            episodes.append(unicode(anime.my_episodes))
+        if anime.my_status in (LOCAL_STATUS_R['watching'],
+                               LOCAL_STATUS_R['dropped'],
+                               LOCAL_STATUS_R['hold']):
+            episodes.append(unicode(anime.my_episodes or 0))
         episodes.append(unicode(anime.episodes or '~'))
         return '/'.join(episodes)
 

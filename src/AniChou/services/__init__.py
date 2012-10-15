@@ -32,11 +32,17 @@ class Manager(object):
     def __init__(self, config):
         self.config = config
         self.main = None
-        self.loadServices()
         self.update_slot = signals.Slot('manager_sync', self.sync)
         if hasattr(config, 'files'):
             self.syncFiles()
             del config['files']
+
+    def __enter__(self):
+        self.loadServices()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        Anime.objects.save()
 
     def syncFiles(self):
         files = {}

@@ -39,6 +39,7 @@ class ModelBase(type):
 class Model(object):
     __metaclass__ = ModelBase
 
+    _pk = None
     _unique = []
     _scheme = None
     fields = {}     # Fields as {name: filed}
@@ -55,6 +56,17 @@ class Model(object):
         self._changed = False
         self._inlist = False
         self.update(kwargs)
+
+    def __get_pk(self):
+        if not self._pk:
+            self._pk = 0
+            for item in self.objects.all():
+                if item is self:
+                    continue
+                if self._pk <= item._pk:
+                    self._pk = item._pk + 1
+        return self._pk
+    pk = property(__get_pk)
 
     def update(self, updates):
         for key, value in updates.iteritems():

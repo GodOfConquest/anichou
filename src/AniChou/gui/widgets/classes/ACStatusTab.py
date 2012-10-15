@@ -4,12 +4,14 @@ import logging
 
 from PyQt4 import QtCore, QtGui
 from AniChou import settings
-from AniChou.db.data import LOCAL_TYPE
+from AniChou.db.data import LOCAL_STATUS
 from AniChou.gui.widgets import (ACReadOnlyDelegate, ACSpinBoxDelegate,
         ACComboBoxDelegate, ACProgressBarDelegate, ACColorDelegate)
 
 
 class ACStatusTab(QtGui.QTableView):
+
+    status = 0
 
     def __init__(self, parent=None, model=None, index=None):
         QtGui.QTableView.__init__(self, parent)
@@ -45,3 +47,37 @@ class ACStatusTab(QtGui.QTableView):
             else:
                 self.setItemDelegateForColumn(number, delegate)
 
+        # Context menu
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.contextMenuShow)
+
+    def contextMenuShow(self, pos):
+        menu = QtGui.QMenu()
+        stat_menu = QtGui.QMenu(menu)
+        stat_menu.setTitle("Set status")
+        menu.addMenu(stat_menu)
+        row = self.rowAt(pos.y())
+        for number, title in LOCAL_STATUS:
+            if number == self.status:
+                continue
+            action = stat_menu.addAction(title)
+            self.connect(action, QtCore.SIGNAL('triggered()'),
+                    lambda r=row, s=number: self.changeStatus(r, s))
+            stat_menu.addAction(action)
+        menu.exec_(self.mapToGlobal(pos))
+
+    def changeStatus(self, row, status):
+        """Changes status of item and moves it to another column"""
+        model = self.model()
+        try:
+            parent = model.findItems(QtCore.QString(status))[0]
+        except Exception as e:
+            logging.error('changeStatus signal caused error:\n{0}'.format(e))
+            return
+        if not parent:
+            logging.error('changeStatus status {0} not found.'.format(status))
+            return
+        root = model.itemFromIndex(self.rootIndex())
+        row = root.takeRow(row)
+        row[0].dbmodel.my_status = status
+        parent.appendRow(row)
