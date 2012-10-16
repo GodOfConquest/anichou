@@ -8,9 +8,15 @@ from AniChou.db.data import LOCAL_TYPE, LOCAL_STATUS_R
 
 LOCAL_TYPE_DICT = dict(LOCAL_TYPE)
 COLUMN_NAMES = dict(settings.GUI_COLUMNS['name'])
-SCORE_VALUES = [str(i) for i in range(1, 11)]
+SCORE_VALUES = [unicode(i) for i in range(1, 11)]
+
 
 class ACStandardItemModel(QtGui.QStandardItemModel):
+    ACTIONS = dict((
+        (Qt.DisplayRole, 'cell_'),
+        (Qt.EditRole, 'get_cell_'),
+        (Qt.DecorationRole, 'decorate_cell_'),
+    ))
 
     def __init__(self, parent=None):
         QtGui.QStandardItemModel.__init__(self, parent)
@@ -20,26 +26,21 @@ class ACStandardItemModel(QtGui.QStandardItemModel):
 
     def data(self, index, role):
         item = self.itemFromIndex(index.sibling(index.row(), 0))
-        if type(item) == QtGui.QStandardItem:
+        column = index.column()
+        if role not in self.ACTIONS.keys() or \
+                type(item) == QtGui.QStandardItem or column < 0:
             return QtGui.QStandardItemModel.data(self, index, role)
 
-        name = COLUMN_NAMES[index.column()]
+        name = COLUMN_NAMES[column]
         if role == Qt.DisplayRole:
             try:
-                cell = getattr(self, 'cell_' + name)(item.dbmodel)
+                cell = getattr(self, self.ACTIONS[role] + name)(item.dbmodel)
             except AttributeError:
                 cell = self.cell_default(name, item.dbmodel)
             return cell
-        elif role == Qt.EditRole:
+        else:
             try:
-                cell = getattr(self, 'get_cell_' + name)(item.dbmodel)
-            except AttributeError:
-                pass
-            else:
-                return cell
-        elif role == Qt.DecorationRole:
-            try:
-                cell = getattr(self, 'decorate_cell_' + name)(item.dbmodel)
+                cell = getattr(self, self.ACTIONS[role] + name)(item.dbmodel)
             except AttributeError:
                 pass
             else:

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # =========================================================================== #
 # Name:    players.py
 # Purpose: detect played files given a set of players and serch paths
@@ -10,8 +12,8 @@
 # License: GPL v3, see COPYING file for details
 # =========================================================================== #
 
-import os, platform, subprocess
 import logging
+import os, platform, subprocess
 
 
 class OpenFileListLinMac(object):
@@ -45,7 +47,7 @@ class OpenFileListLinMac(object):
         self.sets = []
 
         # Current user.
-        mine = '-u' + str(os.getuid())
+        mine = '-u' + unicode(os.getuid())
 
         for line in self.lsof('-lnP', '-F0ncupf', '-M', '-S2', mine):
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from AniChou import signals
 from AniChou.tracker.watcher import Watcher

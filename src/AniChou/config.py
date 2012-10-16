@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
 
 import os, getopt, sys
 import json
 import logging
 # AniChou
 from AniChou import settings
+
+
 
 def usage(prog):
     """

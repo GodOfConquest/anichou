@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore, QtGui
 from ..ui.Ui_ACTextDialog import Ui_ACTextDialog

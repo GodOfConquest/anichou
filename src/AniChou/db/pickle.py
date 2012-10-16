@@ -1,11 +1,4 @@
-# =========================================================================== #
-# Name:     database.py
-# Purpose:  Read and write to the local database
-#
-# Copyright (c) 2009 Daniel Anderson - dankles/evilsage4
-#
-# License: GPL v3, see COPYING file for details
-# =========================================================================== #
+# -*- coding: utf-8 -*-
 
 import cPickle
 from os import path
@@ -34,6 +27,10 @@ class PickleDB(dict):
         """
         if path.isfile(settings.DATA_PATH):
             db_handle = open(settings.DATA_PATH, 'rb')
+            db_handle.seek(0)
             self.clear()
-            self.update(cPickle.load(db_handle))
+            try:
+                self.update(cPickle.load(db_handle))
+            except EOFError:
+                pass
             db_handle.close()

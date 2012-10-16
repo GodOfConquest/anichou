@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import logging
 import os
@@ -7,6 +8,7 @@ from AniChou import signals
 from AniChou.utils import notify
 from AniChou.db.models import Anime
 from AniChou.services.default import DefaultService
+
 
 
 def chooser(name, classname=None):

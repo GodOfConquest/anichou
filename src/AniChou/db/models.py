@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from AniChou.db.base import Model
 from AniChou.db.fields import ( NumberField, StringField,

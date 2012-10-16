@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 
 # Copyright (c) 2008 Gareth Latty
 # Copyright (c) 2009 Sebastian Bartos
 # Copyright (c) 2009 Andre 'Necrotex' Peiffer
+# Copyright (c) 2012 Sir Anthony
 # See COPYING for details
 
 """ mal.py -- core data schemas

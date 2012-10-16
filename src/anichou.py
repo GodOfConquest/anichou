@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
 # =========================================================================== #
 # Name:    anichou.py
 # Purpose: AnimeCollecor application starup script
@@ -12,30 +14,20 @@
 # License: GPL v3, see COPYING file for details
 # =========================================================================== #
 
-import os, sys
-
 # Load logging system
-import logging.config
-from AniChou import settings
-from AniChou.tracker import tracker
-
+import logging
 try:
-    logging.config.dictConfig(settings.LOG_CONFIG)
-except AttributeError:
-    #python < 2.7
-    logging.config.fileConfig(settings.LOG_CONFIG_PATH)
-    fileHandler = logging.handlers.RotatingFileHandler(
-        settings.LOG_PATH, mode='a', maxBytes=100000, backupCount=5)
-    fileHandler.setFormatter(logging.Formatter(
-        settings.LOG_ERROR_FORMAT, settings.LOG_ERROR_DATE))
-    logger = logging.getLogger('')
-    logger.addHandler(fileHandler)
-    logger.setLevel(logging.WARNING)
+    from logging.config import dictConfig
+except ImportError:
+    from AniChou.dictconfig import dictConfig
+from AniChou import settings
+dictConfig(settings.LOG_CONFIG)
 
-
+import os, sys
 from AniChou import gui
 from AniChou.config import BaseConfig
 from AniChou.services import Manager
+from AniChou.tracker import tracker
 
 # Check for AniChou home path existence
 # Create it if not existient
@@ -57,3 +49,10 @@ else:
     logging.warn('no-gui option set')
 
 logging.info('Shutting down, bye bye..')
+
+try:
+    tracker.stop()
+except RuntimeError:
+    pass
+
+sys.exit(0)

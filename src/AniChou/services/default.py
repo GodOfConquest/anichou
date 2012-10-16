@@ -1,13 +1,14 @@
+# -*- coding: utf-8 -*-
 
 import logging
 import urllib2
 from cookielib import LWPCookieJar
 from datetime import datetime
 
+from AniChou import settings
 from AniChou.config import BaseConfig
 from AniChou.db.models import Anime
 from AniChou.db.manager import DoesNotExists
-from AniChou import settings
 
 
 

@@ -14,10 +14,10 @@ class ACComboBoxDelegate(QtGui.QItemDelegate):
 
     def setEditorData(self, editor, index):
         value = index.data(Qt.EditRole).toPyObject()
-        value = editor.findText(str(value))
+        value = editor.findText(unicode(value))
         if value >= 0:
             editor.setCurrentIndex(value)
 
     def setModelData(self, editor, model, index):
-        value = str(editor.currentText())
+        value = unicode(editor.currentText())
         model.setData(index, value, Qt.EditRole)

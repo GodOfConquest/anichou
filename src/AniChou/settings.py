@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 """ settings -- global constants
 
@@ -23,24 +24,26 @@ PACKAGE_PATH = path.abspath(path.dirname(__file__))
 CONFIG_PATH = path.join(USER_PATH, 'ac.cfg')
 
 # Log settings
-LOG_ERROR_FORMAT = "%(levelname)s at %(asctime)s in %(funcName)s in %(filename)s at line %(lineno)d: %(message)s"
-LOG_ERROR_DATE = '[%d.%m.%Y %I:%M:%S]'
-LOG_DEBUG_FORMAT = "%(asctime)s: %(message)s"
+LOG_ERROR_FORMAT = u"%(levelname)s at %(asctime)s in %(funcName)s in %(filename)s at line %(lineno)d: %(message)s"
+LOG_ERROR_DATE = u'[%d.%m.%Y %I:%M:%S]'
+LOG_DEBUG_FORMAT = u'%(asctime)s: %(message)s'
 #LOG_ERROR_FORMAT = LOG_DEBUG_FORMAT
 LOG_PATH = path.join(USER_PATH, 'ac.log')
 LOG_CONFIG_PATH = path.join(PACKAGE_PATH, 'data', 'logging.cfg')
 LOG_CONFIG = {'version': 1,
-              'formatters': {'error': {'format': LOG_ERROR_FORMAT,
+              'formatters': {'error': {'()': 'AniChou.uformatter.UnicodeFormatter',
+                                       'format': LOG_ERROR_FORMAT,
                                        'datefmt': LOG_ERROR_DATE},
-                             'debug': {'format': LOG_DEBUG_FORMAT,
-                                       'datefmt': '[%d %b %I:%M:%S]'}},
+                             'debug': {'()': 'AniChou.uformatter.UnicodeFormatter',
+                                       'format': LOG_DEBUG_FORMAT,
+                                       'datefmt': u'[%d %b %I:%M:%S]'}},
               'handlers': {'console': {'class': 'logging.StreamHandler',
                                        'formatter': 'debug',
-                                       'level': 'logging.DEBUG'},
+                                       'level': 'DEBUG'},
                           'file': {'class':'logging.handlers.RotatingFileHandler',
-                                   'args': (LOG_PATH,'a','maxBytes=100000','backupCount=5'),
-                                   'formatter':'error',
-                                   'level': 'logging.ERROR'}},
+                                   'filename': LOG_PATH, 'maxBytes': 100000,
+                                   'backupCount': 5, 'formatter':'error',
+                                   'level': 'ERROR'}},
               'root': {'handlers': ('console', 'file'), 'level': 'DEBUG'}}
 
 

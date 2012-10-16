@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Main.ui'
 #
-# Created: Tue Sep 18 22:49:08 2012
+# Created: Tue Oct 16 05:54:02 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,7 +30,9 @@ class Ui_AniChou(object):
         self.tracker.setText(_fromUtf8(""))
         self.tracker.setObjectName(_fromUtf8("tracker"))
         self.verticalLayout.addWidget(self.tracker)
-        self.statusTabs = QtGui.QTabWidget(self.centralwidget)
+        self.statusTabs = ACTabWidget(self.centralwidget)
+        self.statusTabs.setDocumentMode(True)
+        self.statusTabs.setMovable(True)
         self.statusTabs.setObjectName(_fromUtf8("statusTabs"))
         self.verticalLayout.addWidget(self.statusTabs)
         AniChou.setCentralWidget(self.centralwidget)
@@ -103,4 +105,5 @@ class Ui_AniChou(object):
         self.actionSync.setToolTip(QtGui.QApplication.translate("AniChou", "Synchronize", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSync.setShortcut(QtGui.QApplication.translate("AniChou", "Ctrl+Y", None, QtGui.QApplication.UnicodeUTF8))
 
+from widgets import ACTabWidget
 import AniChou.gui.images_rc

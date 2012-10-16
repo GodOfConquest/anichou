@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 
 from AniChou.db.fields import from_type, Field
 from AniChou.db.manager import Manager, AlreadyExists
 from AniChou.utils import classproperty
+
 
 class ModelBase(type):
     """

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import logging
-
 from PyQt4 import QtCore, QtGui
 from AniChou import settings
 from AniChou.db.data import LOCAL_STATUS
 from AniChou.gui.widgets import (ACReadOnlyDelegate, ACSpinBoxDelegate,
         ACComboBoxDelegate, ACProgressBarDelegate, ACColorDelegate)
+
 
 
 class ACStatusTab(QtGui.QTableView):
@@ -53,17 +53,27 @@ class ACStatusTab(QtGui.QTableView):
 
     def contextMenuShow(self, pos):
         menu = QtGui.QMenu()
-        stat_menu = QtGui.QMenu(menu)
-        stat_menu.setTitle("Set status")
-        menu.addMenu(stat_menu)
+        # Show item tabs
+        parent = self.parent()
+        # Parent is QStackedWidget here, so check where is QTabWidget
+        while parent and not isinstance(parent, QtGui.QTabWidget):
+            parent = parent.parent()
+        if parent:
+            tabs_menu = parent.contextMenuTabs(menu)
+            menu.addMenu(tabs_menu)
+        #Change item status
         row = self.rowAt(pos.y())
-        for number, title in LOCAL_STATUS:
-            if number == self.status:
-                continue
-            action = stat_menu.addAction(title)
-            self.connect(action, QtCore.SIGNAL('triggered()'),
-                    lambda r=row, s=number: self.changeStatus(r, s))
-            stat_menu.addAction(action)
+        if row >= 0:
+            stat_menu = QtGui.QMenu(menu)
+            stat_menu.setTitle("Set status")
+            menu.addMenu(stat_menu)
+            for number, title in LOCAL_STATUS:
+                if number == self.status:
+                    continue
+                action = stat_menu.addAction(title)
+                self.connect(action, QtCore.SIGNAL('triggered()'),
+                        lambda r=row, s=number: self.changeStatus(r, s))
+                #stat_menu.addAction(action)
         menu.exec_(self.mapToGlobal(pos))
 
     def changeStatus(self, row, status):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import os
 
@@ -41,7 +42,7 @@ class ACDirectoryListWidget(QtGui.QListWidget):
         if not name:
             return
         self.cfg.startup['last_dir'] = os.path.abspath(os.path.join(
-                                                str(name), os.pardir))
+                                            unicode(name), os.pardir))
         item = QtGui.QListWidgetItem(name)
         row = self.row(aitem)
         if row < 0:
@@ -53,7 +54,7 @@ class ACDirectoryListWidget(QtGui.QListWidget):
     def getValue(self):
         data = []
         for i in range(self.count()):
-            data.append(str(self.item(i).text()))
+            data.append(unicode(self.item(i).text()))
         return data
 
     def setValue(self, data):

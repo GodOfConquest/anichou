@@ -35,9 +35,15 @@
      </widget>
     </item>
     <item>
-     <widget class="QTabWidget" name="statusTabs">
+     <widget class="ACTabWidget" name="statusTabs">
       <property name="currentIndex">
        <number>-1</number>
+      </property>
+      <property name="documentMode">
+       <bool>true</bool>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -139,6 +145,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ACTabWidget</class>
+   <extends>QTabWidget</extends>
+   <header>widgets</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../data/images.qrc"/>
  </resources>

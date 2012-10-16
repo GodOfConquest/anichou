@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 
-import re
 import logging
+import re
 
 from PyQt4 import QtCore, QtGui
+
 
 abstract_classes = ['ACReadOnlyDelegate', 'ACSpinBoxDelegate',
         'ACComboBoxDelegate', 'ACProgressBarDelegate', 'ACColorDelegate',
@@ -10,8 +12,8 @@ abstract_classes = ['ACReadOnlyDelegate', 'ACSpinBoxDelegate',
 
 export_classes = ['ACServiceTab', 'ACSimpleInputWidget', 'ACComboBoxWidget']
 
-extern_classes = ['ACStatusTab', 'ACDirectoryListWidget', 'ACTextDialog',
-                  'ACAboutDialog', 'ACPreferencesDialog']
+extern_classes = ['ACStatusTab', 'ACTabWidget', 'ACDirectoryListWidget',
+                  'ACTextDialog', 'ACAboutDialog', 'ACPreferencesDialog']
 
 
 def widget_factory(name):
@@ -43,7 +45,7 @@ def widget_factory(name):
             try:
                 l = filter(lambda x: type(x) == QtGui.QLabel,
                 self.children())[0]
-                t = re.sub('_\d+$', '', str(self.objectName()))
+                t = re.sub('_\d+$', '', unicode(self.objectName()), flags=re.U)
                 t = re.sub('_', ' ', t)
                 l.setText(t + ':')
             except IndexError:
@@ -63,8 +65,8 @@ def widget_factory(name):
                 ltype = type(line)
                 t = ''
                 if ltype == QtGui.QLineEdit:
-                    t = str(line.text())
-                    if re.match("^\d+\.\d+$", t):
+                    t = unicode(line.text())
+                    if re.match("^\d+\.\d+$", t, re.U):
                         t = float(t)
                     elif re.match("^\d+$", t):
                         t = int(t)
@@ -75,7 +77,7 @@ def widget_factory(name):
                 elif ltype == QtGui.QCheckBox:
                     t = bool(line.isChecked())
                 elif ltype == QtGui.QComboBox:
-                    t = str(line.currentText())
+                    t = unicode(line.currentText())
                 ret.append(t)
             if not len(ret):
                 return
@@ -102,7 +104,7 @@ def widget_factory(name):
                     if i < len(data):
                         field = data[i]
                     if ltype == QtGui.QLineEdit:
-                        field = str(field)
+                        field = unicode(field)
                         lines[i].setText(field)
                     elif ltype == QtGui.QSpinBox:
                         if not field:
@@ -123,10 +125,10 @@ def widget_factory(name):
                             field = False
                         lines[i].setChecked(field)
                     elif ltype == QtGui.QComboBox:
-                        field = lines[i].findText(str(field))
+                        field = lines[i].findText(unicode(field))
                         if field >= 0:
                             lines[i].setCurrentIndex(field)
-                    values.append(field if type(field) is not str else QtCore.QString(field))
+                    values.append(field if type(field) is not unicode else QtCore.QString(field))
                 self._changed(*values)
 
         def _changed(self, *values):

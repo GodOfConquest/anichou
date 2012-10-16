@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 
-import logging
 import cStringIO
+import logging
 import traceback
 from AniChou import signals
+
 
 
 class classproperty(property):
@@ -30,8 +32,8 @@ def excepthook(excType, excValue, tracebackobj):
     traceback.print_tb(tracebackobj, None, tbinfofile)
     tbinfofile.seek(0)
     tbinfo = tbinfofile.read()
-    errmsg = '%s: \n%s' % (str(excType), str(excValue))
-    msg = '\n'.join([errmsg, tbinfo])
+    errmsg = u'{0}: \n{1}'.format(excType, excValue)
+    msg = u'\n'.join([errmsg, tbinfo])
     logging.error(msg)
 
 
