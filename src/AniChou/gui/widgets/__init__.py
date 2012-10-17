@@ -8,7 +8,7 @@ from PyQt4 import QtCore, QtGui
 
 abstract_classes = ['ACReadOnlyDelegate', 'ACSpinBoxDelegate',
         'ACComboBoxDelegate', 'ACProgressBarDelegate', 'ACColorDelegate',
-        'ACStandardItem', 'ACStandardItemModel']
+        'ACImagesDelegate', 'ACStandardItem', 'ACStandardItemModel']
 
 export_classes = ['ACServiceTab', 'ACSimpleInputWidget', 'ACComboBoxWidget']
 

@@ -26,7 +26,7 @@ dictConfig(settings.LOG_CONFIG)
 import os, sys
 from AniChou import gui
 from AniChou.config import BaseConfig
-from AniChou.services import Manager
+from AniChou.services import ServiceManager
 from AniChou.tracker import tracker
 
 # Check for AniChou home path existence
@@ -38,12 +38,12 @@ if not os.path.isdir(settings.USER_PATH):
 # Run command line option parser and configuration parser
 cfg = BaseConfig()
 tracker.set_config(cfg)
-
+ServiceManager.setConfig(cfg)
 
 ## RUN THE APPLICATION
 if cfg.startup.get('gui'):
     ## ONLY RUN GUI IF CLI OPTION NOT SET ##
-    with Manager(config=cfg) as service:
+    with ServiceManager as service:
         gui.Qt(service, cfg)
 else:
     logging.warn('no-gui option set')

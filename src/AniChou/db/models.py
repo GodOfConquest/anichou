@@ -25,8 +25,10 @@ LOCAL_ANIME_SCHEMA = {
 
 
 class Anime(Model):
-    _scheme = LOCAL_ANIME_SCHEMA
+    _schema = LOCAL_ANIME_SCHEMA
     _unique = ('title', 'type', 'started')
+    _updated_fields = ('sources', 'synonyms', 'title')
+
 
     def get_names(self):
         return [self.title] + (self.synonyms or [])
@@ -35,3 +37,26 @@ class Anime(Model):
     def save(self):
         self.my_updated = datetime.now()
         super(Anime, self).save()
+
+    def sources_update(self, value):
+        if not self.sources:
+            self.sources = {}
+        self.sources.update(value)
+        print value
+        print self.sources
+
+    def title_update(self, value):
+        if value == self.title:
+            return
+        if self.title:
+            self.synonyms_update(value)
+        else:
+            setattr(self, 'title', value)
+
+    def synonyms_update(self, value):
+        if not self.synonyms:
+            self.synonyms = set()
+        if type(value) is set:
+            self.synonyms |= value
+        else:
+            self.synonyms.add(value)

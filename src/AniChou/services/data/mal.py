@@ -38,6 +38,7 @@ anime_schema = {
 
 
 anime_convert = (
+    ('series_animedb_id', 'sources'),
     ('series_title', 'title'),
     ('series_synonyms', 'synonyms'),
     ('series_type', 'type'),
@@ -52,6 +53,7 @@ anime_convert = (
     ('my_status', 'my_status'),
     ('my_last_updated', 'my_updated')
 )
+
 
 anime_convert_json_default = (
     ('id', 'series_animedb_id'),

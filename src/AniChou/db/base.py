@@ -20,12 +20,12 @@ class ModelBase(type):
         new_class = super_new(cls, name, bases, {'__module__': module})
         # Add manager to the class.
         new_class.add_to_class('objects', Manager)
-        # Add fields from scheme.
-        scheme = attrs.pop('_scheme')
-        if scheme:
-            for key, value in scheme.items():
+        # Add fields from schema.
+        schema = attrs.pop('_schema')
+        if schema:
+            for key, value in schema.items():
                 new_class.add_to_class(key, from_type(value)())
-            new_class.add_to_class('_scheme', scheme)
+            new_class.add_to_class('_schema', schema)
         # Add all attributes to the class.
         for obj_name, obj in attrs.items():
             new_class.add_to_class(obj_name, obj)
@@ -43,8 +43,10 @@ class Model(object):
 
     _pk = None
     _unique = []
-    _scheme = None
+    _schema = None
     fields = {}     # Fields as {name: filed}
+    _updated_fields = () # Fields for non-standard update.
+                         # Model must have function X_update for each
 
     @property
     def unique_fields(self):
@@ -71,10 +73,21 @@ class Model(object):
     pk = property(__get_pk)
 
     def update(self, updates):
+        updated_fileds = {}
+        for key in self._updated_fields:
+            try:
+                updated_fileds[key] = updates.pop(key)
+            except:
+                pass
+
         for key, value in updates.iteritems():
             if not hasattr(self, key):
                 raise AttributeError('Cannot change this property')
             setattr(self, key, value)
+
+        for key, data in updated_fileds.items():
+            getattr(self, '{0}_update'.format(key))(data)
+
 
     def save(self):
         self._changed = False

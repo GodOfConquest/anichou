@@ -4,8 +4,9 @@ import logging
 from PyQt4 import QtCore, QtGui
 from AniChou import settings
 from AniChou.db.data import LOCAL_STATUS
-from AniChou.gui.widgets import (ACReadOnlyDelegate, ACSpinBoxDelegate,
-        ACComboBoxDelegate, ACProgressBarDelegate, ACColorDelegate)
+from AniChou.gui.widgets import ACReadOnlyDelegate
+#, ACSpinBoxDelegate,
+#        ACComboBoxDelegate, ACProgressBarDelegate, ACColorDelegate)
 
 
 
@@ -40,7 +41,10 @@ class ACStatusTab(QtGui.QTableView):
                 self.setItemDelegateForColumn(number, rodelegate)
         for number, name in controls.items():
             try:
-                delegate = globals()['AC{0}Delegate'.format(name)](self)
+                delegate_name = 'AC{0}Delegate'.format(name)
+                delegate = getattr(__import__('AniChou.gui.widgets',
+                            fromlist=[delegate_name,]), delegate_name)
+                delegate = delegate(self)
             except Exception as e:
                 print e
                 logging.error('Bad control {1} for column {0}'.format(number, name))

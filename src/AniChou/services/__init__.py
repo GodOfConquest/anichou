@@ -31,13 +31,9 @@ class Manager(object):
 
     services = []
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
         self.main = None
         self.update_slot = signals.Slot('manager_sync', self.sync)
-        if hasattr(config, 'files'):
-            self.syncFiles()
-            del config['files']
 
     def __enter__(self):
         self.loadServices()
@@ -45,6 +41,13 @@ class Manager(object):
 
     def __exit__(self, type, value, traceback):
         Anime.objects.save()
+
+    def setConfig(self, config):
+        self.config = config
+        self.updateConfig()
+        if hasattr(config, 'files'):
+            self.syncFiles()
+            del config['files']
 
     def syncFiles(self):
         files = {}
@@ -110,6 +113,11 @@ class Manager(object):
             service.stop()
             self.services.remove(s)
 
+    def getService(self, name):
+        for s in self.services:
+            if s.internalname == name:
+                return s
+
     def sync(self, files={}):
         for service in self.services:
             notify('Syncing with {0}..'.format(service.name))
@@ -122,3 +130,7 @@ class Manager(object):
         """Reload config"""
         for service in self.services:
             service.setConfig(self.config)
+
+
+
+ServiceManager = Manager()

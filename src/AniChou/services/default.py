@@ -3,7 +3,7 @@
 import logging
 import urllib2
 from cookielib import LWPCookieJar
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from AniChou import settings
 from AniChou.config import BaseConfig
@@ -165,12 +165,18 @@ class DefaultService(object):
         """
         remote_updates = []
         local_updates = []
+        td = timedelta(0)
         for item in recieved_list:
             decoded = self.decode(item)
             try:
+                # FIXME: rewrite this
+                started = decoded.get('started', None)
+                if not started or \
+                        started - type(started)(1,1,1) == td:
+                    started = '*'
                 anime = Anime.objects.get(names__in=decoded['title'],
                                 type=decoded['type'],
-                                started=decoded.get('started', '*'))
+                                started=started)
             except DoesNotExists:
                 anime = Anime(**decoded)
                 anime.save()
@@ -236,7 +242,7 @@ class DefaultService(object):
         """
         Writes changes to logfile.
         """
-        for action, array in (('Fetching', remote), ('Pushing', local)):
+        for action, array in (('Fetched', remote), ('Pushing', local)):
             for anime in array:
-                logging.info(u'{0} {1} episode {2}\n'.format(action,
+                logging.info(u'{0} {1} with {2} episodes.'.format(action,
                          anime.title, unicode(anime.my_episodes)))

@@ -17,6 +17,7 @@ class Mal(DefaultService):
 
     name = "myanimelist.net"
     decode_schema = data.anime_convert
+    image = ':/data/mal.ico'
 
     def login(self):
         """
@@ -149,7 +150,11 @@ class Mal(DefaultService):
 
     def decodeField(self, name, value):
         if name == 'sources':
-            return {self: value}
+            return {self.internalname: value}
+        elif name == 'synonyms':
+            if not value:
+                return set()
+            return set([item for sb in value.values() for item in sb])
         elif name == 'type':
             return LOCAL_TYPE_R[value.lower()]
         elif name == 'my_status':

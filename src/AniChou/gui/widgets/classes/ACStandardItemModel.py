@@ -35,7 +35,7 @@ class ACStandardItemModel(QtGui.QStandardItemModel):
         if role == Qt.DisplayRole:
             try:
                 cell = getattr(self, self.ACTIONS[role] + name)(item.dbmodel)
-            except AttributeError:
+            except AttributeError, e:
                 cell = self.cell_default(name, item.dbmodel)
             return cell
         else:
@@ -78,6 +78,9 @@ class ACStandardItemModel(QtGui.QStandardItemModel):
 
     def cell_type(self, anime):
         return unicode(LOCAL_TYPE_DICT[anime.type])
+
+    def cell_sources(self, anime):
+        return anime.sources
 
     def cell_episodes(self, anime):
         # Extract episodes/max and construct display string
