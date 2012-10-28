@@ -4,8 +4,9 @@ from PyQt4 import QtCore, QtGui
 from ..ui.Ui_ACPreferencesDialog import Ui_ACPreferencesDialog
 
 from AniChou import config
-from AniChou.gui.widgets import ACServiceTab
+from AniChou import signals
 from AniChou import settings
+from AniChou.gui.widgets import ACServiceTab
 
 
 class ACPreferencesDialog(QtGui.QDialog):
@@ -42,3 +43,4 @@ class ACPreferencesDialog(QtGui.QDialog):
             tab = self.ui.services.widget(i)
             self.cfg.services[tab.serviceName] = tab.getValue()
         self.cfg.save()
+        signals.emit(signals.Signal('manager_update_config'))

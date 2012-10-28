@@ -4,7 +4,17 @@ import cStringIO
 import logging
 import traceback
 from AniChou import signals
+from urllib2 import Request as URLRequest
 
+
+class ACRequest(URLRequest):
+    def __init__(self, *args, **kwargs):
+        self._method = kwargs.pop('method', None)
+        URLRequest.__init__(self, *args, **kwargs)
+
+    def get_method(self):
+        return self._method if self._method else \
+                    URLRequest.get_method(self)
 
 
 class classproperty(property):

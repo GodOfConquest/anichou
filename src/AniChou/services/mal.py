@@ -49,6 +49,22 @@ class Mal(DefaultService):
         """
         return 'http://mal-api.com/animelist/{0}'.format(self.username)
 
+    def cardURL(self):
+        return 'http://myanimelist.net/anime/{0}/'
+
+    def pushURL(self, anime):
+        aid = anime.sources.get(self.internalname)
+        return 'http://mal-api.com/animelist/anime/{0}'.format(aid)
+
+    def guessRequest(self, anime):
+        if anime.my_status is 0: # delete
+            return 'DELETE', self.pushURL(anime), data.anime_del_schema
+        elif anime._last_status is 0: # add
+            return ('POST', 'http://mal-api.com/animelist/anime',
+                    data.anime_post_schema)
+        else: # change
+            return 'PUT', self.pushURL(anime), data.anime_put_schema
+
     def parseList(self, fetch_response):
         """
         Process Anime from MyAnimeList server.
@@ -163,5 +179,9 @@ class Mal(DefaultService):
             return LOCAL_AIR_R[value.lower()]
         return value
 
-    def encode(self, item):
-        return {}
+    def encodeField(self, name, value):
+        if name == 'sources':
+            return value.get(self.internalname, 0)
+        elif name == 'my_status':
+            return data.MAL_STATUS[value]
+        return value

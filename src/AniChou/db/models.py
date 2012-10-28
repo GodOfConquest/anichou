@@ -29,6 +29,9 @@ class Anime(Model):
     _unique = ('title', 'type', 'started')
     _updated_fields = ('sources', 'synonyms', 'title')
 
+    def __init__(self, **kwargs):
+        super(Anime, self).__init__(**kwargs)
+        self._last_status = self.my_status
 
     def get_names(self):
         return [self.title] + (self.synonyms or [])
@@ -37,13 +40,12 @@ class Anime(Model):
     def save(self):
         self.my_updated = datetime.now()
         super(Anime, self).save()
+        self._last_status = self.my_status
 
     def sources_update(self, value):
         if not self.sources:
             self.sources = {}
         self.sources.update(value)
-        print value
-        print self.sources
 
     def title_update(self, value):
         if value == self.title:

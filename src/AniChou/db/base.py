@@ -58,7 +58,6 @@ class Model(object):
     def __init__(self, **kwargs):
         self._fields_dict = {}
         self._changed = False
-        self._inlist = False
         self.update(kwargs)
 
     def __get_pk(self):
@@ -88,16 +87,11 @@ class Model(object):
         for key, data in updated_fileds.items():
             getattr(self, '{0}_update'.format(key))(data)
 
-
     def save(self):
-        self._changed = False
         try:
             self.objects.add(self)
         except AlreadyExists:
             pass
-        self._inlist = True
 
     def delete(self):
         self.objects.delete(self)
-        self._inlist = False
-

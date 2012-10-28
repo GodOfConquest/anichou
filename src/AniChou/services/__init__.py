@@ -8,6 +8,7 @@ from AniChou import signals
 from AniChou.utils import notify
 from AniChou.db.models import Anime
 from AniChou.services.default import DefaultService
+from datetime import datetime
 
 
 
@@ -34,6 +35,7 @@ class Manager(object):
     def __init__(self):
         self.main = None
         self.update_slot = signals.Slot('manager_sync', self.sync)
+        self.update_slot = signals.Slot('manager_update_config', self.updateConfig)
 
     def __enter__(self):
         self.loadServices()
@@ -41,6 +43,17 @@ class Manager(object):
 
     def __exit__(self, type, value, traceback):
         Anime.objects.save()
+
+    def _setLastSync(self, date):
+        Anime.objects.db.setdefault('sync', {}
+            )['manager'] = date
+    def _getLastSync(self):
+        try:
+            sync = Anime.objects.db['sync']['manager']
+        except KeyError:
+            self.last_sync = sync = datetime.now()
+        return sync
+    last_sync = property(_getLastSync, _setLastSync)
 
     def setConfig(self, config):
         self.config = config
@@ -124,6 +137,8 @@ class Manager(object):
             if not service.sync(filename=files.get(service)):
                 notify('Syncing failed..')
         notify('Syncing Done.')
+        self.last_sync = datetime.now()
+        Anime.objects.save()
         signals.emit(signals.Signal('gui_tables_update'))
 
     def updateConfig(self):

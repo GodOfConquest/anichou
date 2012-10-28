@@ -32,7 +32,7 @@ class Field(object):
         return getattr(caller, '_fields_dict', {}).get(self.name)
 
     def __set__(self, caller, value):
-        caller._changed = True
+        caller._changed = datetime.datetime.now()
         if not hasattr(caller, '_fields_dict'):
             caller._fields_dict = {}
         caller._fields_dict[self.name] = self.to_python(value)

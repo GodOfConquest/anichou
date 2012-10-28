@@ -111,15 +111,17 @@ class ACTabWidget(QtGui.QTabWidget):
                 model_status = int(child.dbmodel.my_status)
                 if number != model_status:
                     if model_status not in orphans.keys():
-                        orphans[model_status] = set()
+                        orphans[model_status] = []
                     # Remove rows with changed status
                     orphans[model_status].append(parent.takeRow(row))
 
         # Move old rows to new place
-        for key, values in orphans:
+        for key, values in orphans.items():
             if not key in leafs:
                 logging.error('Bad status {}. Items removed.'.format(key))
-            leafs[key].appendRows(values)
+                continue
+            for row in values:
+                leafs[key].appendRow(row)
 
         # Create new rows
         for item in objects:

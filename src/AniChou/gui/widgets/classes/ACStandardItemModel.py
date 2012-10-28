@@ -4,6 +4,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from AniChou import settings
 from AniChou.db.data import LOCAL_TYPE, LOCAL_STATUS_R
+from AniChou.services import ServiceManager
 
 
 LOCAL_TYPE_DICT = dict(LOCAL_TYPE)
@@ -72,7 +73,7 @@ class ACStandardItemModel(QtGui.QStandardItemModel):
         return ''
 
     def decorate_cell_changed(self, anime):
-        if anime._changed:
+        if anime._changed > ServiceManager.last_sync:
             return (255, 50, 50)
         return (100, 180, 0)
 

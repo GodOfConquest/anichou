@@ -45,7 +45,7 @@ def widget_factory(name):
             try:
                 l = filter(lambda x: type(x) == QtGui.QLabel,
                 self.children())[0]
-                t = re.sub('_\d+$', '', unicode(self.objectName()), flags=re.U)
+                t = re.sub('_\d+$', '', unicode(self.objectName()))
                 t = re.sub('_', ' ', t)
                 l.setText(t + ':')
             except IndexError:

@@ -57,7 +57,7 @@ class Manager(object):
             return set(self.db[self.__model])
         except KeyError:
             self.db[self.__model] = set()
-        return set()
+        return self.db[self.__model]
     data = property(__get_data)
 
     def all(self):
@@ -102,7 +102,7 @@ class Manager(object):
         self.db[self.__model].add(obj)
 
     def save(self):
-        self.db.write(self.data)
+        self.db.write()
 
     def delete(self, item):
         if self.__model not in self.db.keys():

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import urllib2
+import time
+import urllib, urllib2
 from cookielib import LWPCookieJar
 from datetime import datetime, timedelta
 
@@ -9,6 +10,7 @@ from AniChou import settings
 from AniChou.config import BaseConfig
 from AniChou.db.models import Anime
 from AniChou.db.manager import DoesNotExists
+from AniChou.utils import ACRequest
 
 
 
@@ -17,11 +19,10 @@ class DefaultService(object):
     Anime data base class. Reads and writes local anime data to disk, fetches and
     syncs with service server.
 
-    username: login username
-    password: login password
-    db_path: path to database
-    db: local anime database that is a nested dict and has ASCII-fied series
-        titles as keys and and fields form mal_anime_data_schema as dict data.
+    Properties:
+        name - human-readable name of service
+        internalname - name of service for internal usage
+        last_sync - date fo the last service sync
     """
 
     name = "Dummy service"
@@ -46,8 +47,6 @@ class DefaultService(object):
         # That would also enable reconfiguration at runtime.
         self.setConfig(config or BaseConfig(), **kw)
 
-        self.encode_schema = dict([(value, key) for key, value in self.decode_schema])
-
         # setup cookie handler
         self.opener = urllib2.build_opener(
                         urllib2.HTTPCookieProcessor(LWPCookieJar()))
@@ -58,6 +57,20 @@ class DefaultService(object):
         if self.initsync:
             self.sync()
 
+    def _setLastSync(self, date):
+        Anime.objects.db.setdefault('sync', {}
+            ).setdefault('services', {}
+            )[self.internalname] = date
+    def _getLastSync(self):
+        try:
+            sync = Anime.objects.db['sync']['services'][self.internalname]
+        except KeyError:
+            self.last_sync = sync = datetime.now()
+        return sync
+    last_sync = property(_getLastSync, _setLastSync)
+
+    anonymous = lambda self: not bool(self.username and self.password)
+
     def setConfig(self, cfg, **kwargs):
         """Setup self variables from config"""
         self.base_config  = cfg
@@ -65,7 +78,6 @@ class DefaultService(object):
         self.username = kwargs.get('username', config.get('username'))
         self.password = kwargs.get('password', config.get('password'))
         self.initsync = kwargs.get('initsync', self.base_config.startup.get('sync'))
-        self.anonymous = not bool(self.username and self.password)
 
     def stop(self):
         """
@@ -73,10 +85,21 @@ class DefaultService(object):
         """
         logging.info("Service %s was disabled", self.name)
 
-    def fetchUrl():
+    def fetchURL(self):
         raise NotImplementedError('This function must be implemented in subclass')
 
-    def pushUrl(a):
+    def pushURL(self, a):
+        raise NotImplementedError('This function must be implemented in subclass')
+
+    def cardURL(self):
+        """Returns url for service item."""
+        raise NotImplementedError('This function must be implemented in subclass')
+
+    def guessRequest(self, anime):
+        """Guess url and request method from anime.
+        Useful for shit-like APIs with different methods for same actions.
+        Returns: request_type_string, url_string, schema
+        """
         raise NotImplementedError('This function must be implemented in subclass')
 
     def sync(self, filename=None):
@@ -103,17 +126,19 @@ class DefaultService(object):
         if not self.pushList(local_updates):
             logging.warn('Your local data goes ouf of sync')
         Anime.objects.save()
+        self.last_sync = datetime.now()
         return True
 
-    def sendRequest(self, link, data={}):
+    def sendRequest(self, link, data={}, method=None):
         """
         Send request to the server. Return responce.
         """
         try:
+            args = [link]
             if data:
-                response = self.opener.open(link, data)
-            else:
-                response = self.opener.open(link)
+                args.append(data)
+            request = ACRequest(*args, method=method)
+            response = self.opener.open(request)
         except urllib2.URLError, e:
             if hasattr(e, 'reason'):
                 logging.error('Failed to reach %s server. Reason: %s',
@@ -142,13 +167,32 @@ class DefaultService(object):
         Returns: remote data in its format.
         """
         # Three way switch: login (un)successfull or don't even try.
-        if not self.anonymous and not self.logined():
+        if self.anonymous() or not self.logined():
             logging.warn('Login to %s server failed..', self.name)
             return None
         fetch_response = self.sendRequest(self.fetchURL())
         if fetch_response:
             return fetch_response.read()
         return []
+
+    def pushList(self, local_updates):
+        """
+        Updates every entry in the local updates dictionary on the server.
+        Returns:
+            True on success, False on failure
+        """
+        if self.anonymous() or not self.logined():
+            logging.warn('Login to %s server failed..', self.name)
+            return None
+
+        for anime in local_updates:
+            request_type, url, schema = self.guessRequest(anime)
+            postdata = urllib.urlencode(self.encode(anime, schema))
+            response = self.sendRequest(url, postdata, method=request_type)
+            if not response:
+                return False
+            time.sleep(settings.TIMEOUT)
+        return True
 
     def parseList(self, remote_list):
         """
@@ -166,6 +210,7 @@ class DefaultService(object):
         remote_updates = []
         local_updates = []
         td = timedelta(0)
+        updated = self.last_sync
         for item in recieved_list:
             decoded = self.decode(item)
             try:
@@ -182,13 +227,16 @@ class DefaultService(object):
                 anime.save()
                 remote_updates.append(anime)
                 continue
-            updated = decoded.get('my_updated', datetime.now())
-            if anime.my_updated < updated:
+            updated = decoded.get('my_updated', updated)
+            if anime._changed < updated:
                 remote_updates.append(anime)
                 anime.update(decoded)
                 anime.save()
-            elif anime.my_updated > updated:
+            elif anime._changed > updated:
                 local_updates.append(anime)
+            else:
+                logging.warning(
+                    'Updating behawior of item {0} was not defined.'.format(Anime.title))
         return remote_updates, local_updates
 
     def decode(self, item, schema=None):
@@ -214,27 +262,26 @@ class DefaultService(object):
         """
         raise NotImplementedError('Must be implemented in subclass')
 
-    def pushList(self, local_updates):
+    def encode(self, item, schema=None):
         """
-        Updates every entry in the local updates dictionary on the server.
-        Returns:
-            True on success, False on failure
+        Convert Anime item to item dictionary using remote service
+        schema. Service must provide convert list as schema parameter.
+        Returns: converted dictionary
         """
-        if self.anonymous or not self.logined():
-            return False
+        schema = getattr(self, 'encode_schema', schema)
+        if not schema:
+            raise NotImplementedError('Must be called with convert list')
+        ret = {}
+        for key, value in schema:
+            if not hasattr(item, key):
+                logging.error('Schema key %s not found in Anime model', key)
+                continue
+            ret[value] = self.encodeField(key, getattr(item, key))
+        return ret
 
-        for anime in local_updates:
-            postdata = urllib.urlencode(self.makePost(anime))
-            response = self.sendRequest(self.pushURL(anime), postdata)
-            if not response:
-                return False
-            time.sleep(settings.TIMEOUT)
-        return True
-
-    def encodeList(self, sended_list):
+    def encodeField(self, name, value):
         """
-        Convert local list to service recieving format.
-        Returns: dictionary object ready for posting to server.
+        Make convert proceduer for specific fields
         """
         raise NotImplementedError('Must be implemented in subclass')
 

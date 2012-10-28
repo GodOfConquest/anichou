@@ -13,7 +13,7 @@ class PickleDB(dict):
         dict.__init__(self, {})
         self.read()
 
-    def write(self, data):
+    def write(self):
         """
         Takes a dictionary object to store into the DB
         """
