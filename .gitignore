@@ -6,5 +6,6 @@ dist/
 *._swp
 *.bak
 *~
+src/AniChou/gui/Main.py
 src/AniChou/gui/widgets/ui/*.py
 src/AniChou/gui/*_rc.py
