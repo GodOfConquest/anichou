@@ -141,6 +141,13 @@ class Manager(object):
         Anime.objects.save()
         signals.emit(signals.Signal('gui_tables_update'))
 
+    def search(self, string):
+        result = set()
+        for service in self.services:
+            result |= service.search(string)
+        print result
+        signals.emit(signals.Signal('gui_search_create'), None, result)
+
     def updateConfig(self):
         """Reload config"""
         for service in self.services:

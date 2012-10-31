@@ -42,11 +42,14 @@ class Manager(object):
 
     @staticmethod
     def __filterfunc(item, key, value):
+        (key, dictkey) = key.partition('+')[::2]
         (key, op) = key.partition('__')[::2]
         attribute = getattr(item, key)
         if op == 'in':
             return value in attribute
         operation = getattr(operator, op, operator.eq)
+        if isinstance(attribute, dict) and dictkey:
+            attribute = attribute.get(dictkey, None)
         return operation(attribute, value)
 
     def __init__(self, model):

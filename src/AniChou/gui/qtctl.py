@@ -6,6 +6,7 @@ from PyQt4 import QtCore, QtGui
 from AniChou import signals
 from AniChou.gui.Main import Ui_AniChou
 from AniChou.gui.widgets import ( ACAboutDialog, ACPreferencesDialog )
+from AniChou.services import ServiceManager
 
 
 __all__ = ['get_app', 'Main']
@@ -92,3 +93,8 @@ class Main(QtGui.QMainWindow):
     def showPreferencesDialog(self):
         pref = ACPreferencesDialog(self)
         pref.show()
+
+    @QtCore.pyqtSlot()
+    def newSearch(self):
+        text = self.ui.searchBox.text()
+        ServiceManager.search(text)

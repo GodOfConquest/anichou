@@ -23,6 +23,7 @@ class ACTabWidget(QtGui.QTabWidget):
 
         self.createTabs()
         signals.Slot('gui_tables_update', self.updateFromDB)
+        signals.Slot('gui_search_create', self.updateSearchTab)
 
         # Context menu
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -129,3 +130,6 @@ class ACTabWidget(QtGui.QTabWidget):
             label = QtCore.QString(
                 '{0}:{1}'.format(item.__class__.__name__, item.pk))
             leafs[status].appendRow(ACStandardItem(label, item))
+
+    def updateSearchTab(self, data):
+        pass

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>711</width>
     <height>600</height>
    </rect>
   </property>
@@ -18,6 +18,130 @@
     <property name="margin">
      <number>5</number>
     </property>
+    <item>
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="buttonSync">
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../data/images.qrc">
+           <normaloff>:/data/sync.ico</normaloff>:/data/sync.ico</iconset>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonAbout">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../data/images.qrc">
+           <normaloff>:/data/anichou16.png</normaloff>:/data/anichou16.png</iconset>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelSearch">
+         <property name="text">
+          <string>Search:</string>
+         </property>
+         <property name="wordWrap">
+          <bool>false</bool>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="searchBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>170</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>170</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item>
      <widget class="QLabel" name="tracker">
       <property name="enabled">
@@ -54,7 +178,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>711</width>
      <height>19</height>
     </rect>
    </property>
@@ -83,19 +207,6 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionSync"/>
-   <addaction name="actionAbout"/>
-  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
@@ -237,11 +348,60 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>buttonAbout</sender>
+   <signal>clicked()</signal>
+   <receiver>AniChou</receiver>
+   <slot>showAboutDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>67</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>355</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonSync</sender>
+   <signal>clicked()</signal>
+   <receiver>AniChou</receiver>
+   <slot>sync()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>24</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>355</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchBox</sender>
+   <signal>returnPressed()</signal>
+   <receiver>AniChou</receiver>
+   <slot>newSearch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>576</x>
+     <y>44</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>709</x>
+     <y>571</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>sync()</slot>
   <slot>toggleTracker(bool)</slot>
   <slot>showAboutDialog()</slot>
   <slot>showPreferencesDialog()</slot>
+  <slot>newSearch()</slot>
  </slots>
 </ui>

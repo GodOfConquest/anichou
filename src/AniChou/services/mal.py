@@ -56,6 +56,9 @@ class Mal(DefaultService):
         aid = anime.sources.get(self.internalname)
         return 'http://mal-api.com/animelist/anime/{0}'.format(aid)
 
+    def searchURL(self):
+        return 'http://mal-api.com/anime/search?q={0}'
+
     def guessRequest(self, anime):
         if anime.my_status is 0: # delete
             return 'DELETE', self.pushURL(anime), data.anime_del_schema
@@ -64,6 +67,9 @@ class Mal(DefaultService):
                     data.anime_post_schema)
         else: # change
             return 'PUT', self.pushURL(anime), data.anime_put_schema
+
+    def searchRequest(self, string):
+        return 'GET', self.searchURL().format(string), {}
 
     def parseList(self, fetch_response):
         """
@@ -86,8 +92,11 @@ class Mal(DefaultService):
         except ValueError as e:
             raise IOError('Not a json:\n{0}'.format(e))
 
+        if type(anime_nodes) is dict:
+            anime_nodes = anime_nodes.get('anime', [])
+
         ac_remote_anime_list = []
-        for anime in anime_nodes.get('anime', {}):
+        for anime in anime_nodes:
             ac_node = {}
             for node, local_node in data.anime_convert_json_default:
                 typ = data.anime_schema.get(local_node)
@@ -148,7 +157,10 @@ class Mal(DefaultService):
             ac_node = datetime.fromtimestamp(int(value))
         elif typ is int:
             # process integer slots
-            ac_node = int(value)
+            if value is None:
+                ac_node = 0
+            else:
+                ac_node = int(value)
         elif typ in (date, datetime):
             if value and value != '0000-00-00':
                 try:
@@ -174,9 +186,15 @@ class Mal(DefaultService):
         elif name == 'type':
             return LOCAL_TYPE_R[value.lower()]
         elif name == 'my_status':
-            return LOCAL_STATUS_R[value.lower()]
+            if value:
+                return LOCAL_STATUS_R[value.lower()]
+            else:
+                return 0
         elif name == 'air':
-            return LOCAL_AIR_R[value.lower()]
+            if value:
+                return LOCAL_AIR_R[value.lower()]
+            else:
+                return 0
         return value
 
     def encodeField(self, name, value):

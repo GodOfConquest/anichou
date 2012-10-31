@@ -95,10 +95,20 @@ class DefaultService(object):
         """Returns url for service item."""
         raise NotImplementedError('This function must be implemented in subclass')
 
+    def searchURL(self):
+        """Returns url for service search."""
+        raise NotImplementedError('This function must be implemented in subclass')
+
     def guessRequest(self, anime):
         """Guess url and request method from anime.
         Useful for shit-like APIs with different methods for same actions.
         Returns: request_type_string, url_string, schema
+        """
+        raise NotImplementedError('This function must be implemented in subclass')
+
+    def searchRequest(self, string):
+        """Prepare data to search request.
+        Returns: request_type_string, url_string, data
         """
         raise NotImplementedError('This function must be implemented in subclass')
 
@@ -161,6 +171,22 @@ class DefaultService(object):
         """
         raise NotImplementedError('Must be implemented in subclass')
 
+    def search(self, string):
+        """
+        Use service api to search by string. Returns list of `Anime` instances.
+        """
+        results = set()
+        request_type, url, data = self.searchRequest(string)
+        postdata = urllib.urlencode(data)
+        response = self.sendRequest(url, postdata, method=request_type)
+        if response:
+            recieved_list = self.parseList(response.read())
+            for item in recieved_list:
+                decoded = self.decode(item)
+                anime, created = self.convertItem(decoded)
+                results.add(anime)
+        return results
+
     def fetchList(self):
         """
         Retrieve anime list from service server.
@@ -209,22 +235,11 @@ class DefaultService(object):
         """
         remote_updates = []
         local_updates = []
-        td = timedelta(0)
         updated = self.last_sync
         for item in recieved_list:
             decoded = self.decode(item)
-            try:
-                # FIXME: rewrite this
-                started = decoded.get('started', None)
-                if not started or \
-                        started - type(started)(1,1,1) == td:
-                    started = '*'
-                anime = Anime.objects.get(names__in=decoded['title'],
-                                type=decoded['type'],
-                                started=started)
-            except DoesNotExists:
-                anime = Anime(**decoded)
-                anime.save()
+            anime, created = self.convertItem(decoded)
+            if created:
                 remote_updates.append(anime)
                 continue
             updated = decoded.get('my_updated', updated)
@@ -238,6 +253,28 @@ class DefaultService(object):
                 logging.warning(
                     'Updating behawior of item {0} was not defined.'.format(Anime.title))
         return remote_updates, local_updates
+
+    def convertItem(self, decoded):
+        """
+        Convert decoded dictionary to Anime instance.
+        Returns: Anime instance, bool: false if item was obtained from
+        database, true if it was created.
+        """
+        td = timedelta(0)
+        try:
+            # FIXME: rewrite this
+            started = decoded.get('started', None)
+            if not started or \
+                    started - type(started)(1,1,1) == td:
+                started = '*'
+            anime = Anime.objects.get(names__in=decoded['title'],
+                            type=decoded['type'],
+                            started=started)
+        except DoesNotExists:
+            anime = Anime(**decoded)
+            anime.save()
+            return anime, True
+        return anime, False
 
     def decode(self, item, schema=None):
         """
