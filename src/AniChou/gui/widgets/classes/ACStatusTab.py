@@ -5,16 +5,13 @@ from PyQt4 import QtCore, QtGui
 from AniChou import settings
 from AniChou.db.data import LOCAL_STATUS
 from AniChou.gui.widgets import ACReadOnlyDelegate
-#, ACSpinBoxDelegate,
-#        ACComboBoxDelegate, ACProgressBarDelegate, ACColorDelegate)
-
 
 
 class ACStatusTab(QtGui.QTableView):
 
     status = 0
 
-    def __init__(self, parent=None, model=None, index=None):
+    def __init__(self, parent=None, model=None, index=None, stindex=None):
         QtGui.QTableView.__init__(self, parent)
         if model:
             self.setModel(model)
@@ -27,13 +24,21 @@ class ACStatusTab(QtGui.QTableView):
         # self.setSortingEnabled(True)
         self.verticalHeader().hide()
         hheader = self.horizontalHeader()
-        hheader.setStretchLastSection(True)
+        #hheader.setStretchLastSection(True)
         hheader.setMinimumSectionSize(5)
         hheader.setHighlightSections(False)
-        for size in settings.GUI_COLUMNS['size']:
-            hheader.resizeSection(*size)
+        self.customStyle = style = settings.GUI_COLUMNS.get_by_index(stindex)
+        for size in style['size']:
+            hheader.resizeSection(*size[:2])
+            if isinstance(size[-1], basestring):
+                try:
+                    mode = '+*!~'.index(size[-1])
+                except ValueError:
+                    logging.error('Resize mode {0} not supported')
+                else:
+                    hheader.setResizeMode(size[0], mode)
 
-        controls = dict(settings.GUI_COLUMNS['controls'])
+        controls = dict(style['controls'])
         # Controls
         rodelegate = ACReadOnlyDelegate(self)
         for number in range(0, model.columnCount()):

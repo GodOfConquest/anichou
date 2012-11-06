@@ -5,11 +5,16 @@ from PyQt4.QtCore import Qt
 from AniChou import settings
 from AniChou.db.data import LOCAL_TYPE, LOCAL_STATUS_R
 from AniChou.services import ServiceManager
+from AniChou.utils import DefaultDict
 
 
 LOCAL_TYPE_DICT = dict(LOCAL_TYPE)
-COLUMN_NAMES = dict(settings.GUI_COLUMNS['name'])
 SCORE_VALUES = [unicode(i) for i in range(1, 11)]
+COLUMN_NAMES = DefaultDict([
+    (v, dict(settings.GUI_COLUMNS[v]['name'])) \
+        for v in settings.GUI_COLUMNS['index'].values()
+])
+COLUMN_NAMES['index'] = settings.GUI_COLUMNS['index']
 
 
 class ACStandardItemModel(QtGui.QStandardItemModel):
@@ -21,18 +26,24 @@ class ACStandardItemModel(QtGui.QStandardItemModel):
 
     def __init__(self, parent=None):
         QtGui.QStandardItemModel.__init__(self, parent)
-        columns = settings.GUI_COLUMNS['title']
-        self.setColumnCount(len(columns))
-        self.setHorizontalHeaderLabels([i for v, i in columns])
+        columns = max([len(v.get('name', [])) \
+             for k, v in settings.GUI_COLUMNS.items() \
+                if k != 'index'])
+        self.setColumnCount(columns)
+        #self.setHorizontalHeaderLabels([i for v, i in columns])
 
-    def data(self, index, role):
+    def columnName(self, column):
+        #return COLUMN_NAMES.get_by_index(item.parent().text())[column]
+        return dict(settings.GUI_COLUMNS['default']['name'])[column]
+
+    def data(self, index, role, name=None):
         item = self.itemFromIndex(index.sibling(index.row(), 0))
         column = index.column()
         if role not in self.ACTIONS.keys() or \
                 type(item) == QtGui.QStandardItem or column < 0:
             return QtGui.QStandardItemModel.data(self, index, role)
-
-        name = COLUMN_NAMES[column]
+        if name is None:
+            name = self.columnName(column)
         if role == Qt.DisplayRole:
             try:
                 cell = getattr(self, self.ACTIONS[role] + name)(item.dbmodel)
@@ -49,13 +60,13 @@ class ACStandardItemModel(QtGui.QStandardItemModel):
 
         return QtGui.QStandardItemModel.data(self, index, role)
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role, name=None):
         item = self.itemFromIndex(index.sibling(index.row(), 0))
         if type(item) == QtGui.QStandardItem:
             QtGui.QStandardItemModel.setData(self, index, value, role)
             return
-
-        name = COLUMN_NAMES[index.column()]
+        if name is None:
+            name = self.columnName(column)
         if role == Qt.EditRole:
             try:
                 getattr(self, 'set_cell_' + name)(item.dbmodel, value)

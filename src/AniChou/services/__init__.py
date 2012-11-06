@@ -145,7 +145,6 @@ class Manager(object):
         result = set()
         for service in self.services:
             result |= service.search(string)
-        print result
         signals.emit(signals.Signal('gui_search_create'), None, result)
 
     def updateConfig(self):

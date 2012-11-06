@@ -7,6 +7,21 @@ from AniChou import signals
 from urllib2 import Request as URLRequest
 
 
+class DefaultDict(dict):
+    def get_by_index(self, index):
+        try:
+            key = self['index'].get(unicode(index), 'default')
+        except KeyError:
+            logging.error('DefaultDict instance has no index')
+            key = 'default'
+        return self.get(key)
+
+    def __missing__(self, name):
+        if 'default' in self.keys():
+            return self['default']
+        super(DefaultDict, self).__missing__(name)
+
+
 class ACRequest(URLRequest):
     def __init__(self, *args, **kwargs):
         self._method = kwargs.pop('method', None)

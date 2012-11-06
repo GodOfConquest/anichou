@@ -5,7 +5,7 @@ from AniChou import settings
 from AniChou import signals
 from AniChou.db.models import Anime
 from AniChou.gui.widgets import ( ACStatusTab, ACStandardItemModel,
-                                  ACStandardItem )
+                            ACSortFilterProxyModel, ACStandardItem )
 from AniChou.services.data.base import LOCAL_STATUS
 from PyQt4 import QtCore, QtGui
 
@@ -60,16 +60,21 @@ class ACTabWidget(QtGui.QTabWidget):
     def showTab(self, number, title):
         title = unicode(title)
         if title not in self.removedTabs.keys():
-            model = self.model
-            parentItem = model.invisibleRootItem()
+            parentItem = self.model.invisibleRootItem()
+            model = ACSortFilterProxyModel(model=self.model, stindex=number)
             # Add model group
-            item = QtGui.QStandardItem(QtCore.QString(number))
-            parentItem.appendRow(item)
-            columns = len(settings.GUI_COLUMNS['name']) - 1
-            item.insertColumns(1, columns)
+            try:
+                item = self.model.findItems(QtCore.QString(unicode(number)))[0]
+            except IndexError:
+                item = QtGui.QStandardItem(QtCore.QString(unicode(number)))
+                parentItem.appendRow(item)
+                style = settings.GUI_COLUMNS.get_by_index(number)
+                columns = len(style['name']) - 1
+                item.insertColumns(1, columns)
             # Create tab and set its model
-            index = model.index(model.rowCount() - 1, 0)
-            tab = ACStatusTab(self, model, index)
+            #index = model.index(model.rowCount() - 1, 0)
+            index = model.index(item.row(), 0)
+            tab = ACStatusTab(self, model, index, number)
             tab.status = number
             logging.debug('Tab with number {0} and label {1} added.'.format(number, title))
         else:
@@ -98,7 +103,7 @@ class ACTabWidget(QtGui.QTabWidget):
         objects = set(Anime.objects.all())
         orphans = {}
         for number in statuses:
-            leafs[int(number)] = parent = self.model.findItems(QtCore.QString(number))[0]
+            leafs[int(number)] = parent = self.model.findItems(QtCore.QString(unicode(number)))[0]
             for row in range(0, parent.rowCount()):
                 child = parent.child(row)
                 # Remove item from model list
@@ -132,4 +137,11 @@ class ACTabWidget(QtGui.QTabWidget):
             leafs[status].appendRow(ACStandardItem(label, item))
 
     def updateSearchTab(self, data):
-        pass
+        index = settings.GUI_FIRST_CUSTOM_TAB_INDEX
+        self.showTab(index, 'Search')
+        parent = self.model.findItems(QtCore.QString(unicode(index)))[0]
+        parent.removeRows(0, parent.rowCount())
+        for item in data:
+            label = QtCore.QString(
+                '{0}:{1}'.format(item.__class__.__name__, item.pk))
+            parent.appendRow(ACStandardItem(label, item))

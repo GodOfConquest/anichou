@@ -8,6 +8,7 @@ painless as possible we put them in one place. Here.
 """
 
 from os import path
+from AniChou.utils import DefaultDict
 
 
 # Current version string
@@ -71,32 +72,65 @@ PLAYERS = ['mplayer', 'totem']
 
 
 # GUI Settings
+GUI_FIRST_CUSTOM_TAB_INDEX = 35
 
-GUI_COLUMNS = {
-    'name': (
-        (0, 'changed'),
-        (1, 'title'),
-        (2, 'type'),
-        (3, 'sources'),
-        (4, 'my_score'),
-        (5, 'episodes'),
-        (6, 'progress')
-    ),
-    'title': (
-        (0, ''),
-        (1, 'Title'),
-        (2, 'Type'),
-        (3, 'Sources'),
-        (4, 'Rating'),
-        (5, 'Episodes'),
-        (6, 'Progress')
-    ),
-    'size': (
-        (0, 7), (1, 300), (2, 50), (3, 60), (4, 50), (5, 70)
-    ),
-    'controls': (
-        (0, 'Color'), (3, 'Images'), (4, 'ComboBox'), (5, 'SpinBox'),
-        (6, 'ProgressBar')
-    )
-
-}
+GUI_COLUMNS = DefaultDict({
+    'index': {
+        'default': 'default',
+        # Index must be numerical
+        unicode(GUI_FIRST_CUSTOM_TAB_INDEX): 'search',
+    },
+    'default': {
+        'name': (
+            (0, 'changed'),
+            (1, 'title'),
+            (2, 'type'),
+            (3, 'sources'),
+            (4, 'my_score'),
+            (5, 'episodes'),
+            (6, 'progress')
+        ),
+        'title': (
+            (0, ''),
+            (1, 'Title'),
+            (2, 'Type'),
+            (3, 'Sources'),
+            (4, 'Rating'),
+            (5, 'Episodes'),
+            (6, 'Progress')
+        ),
+        'size': (
+            # Sizes accepts letters as third parameter, instead of numbers
+            # for automatic resize behavior. Supported modes:
+            #   '+' - simple
+            #   '*' - stretch
+            #   '!' - fixed
+            #   '~' - resize to content
+            (0, 7, '!'), (1, 300, '*'), (2, 50, '~'), (3, 60), (4, 50), (5, 70), (6, 200)
+        ),
+        'controls': (
+            (0, 'Color'), (3, 'Images'), (4, 'ComboBox'), (5, 'SpinBox'),
+            (6, 'ProgressBar')
+        )
+    },
+    'search': {
+        'name': (
+            (0, 'title'),
+            (1, 'type'),
+            (2, 'sources'),
+            (3, 'episodes'),
+        ),
+        'title': (
+            (0, 'Title'),
+            (1, 'Type'),
+            (2, 'Sources'),
+            (3, 'Episodes'),
+        ),
+        'size': (
+            (0, 300, '*'), (1, 50, '~'), (2, 60), (3, 70)
+        ),
+        'controls': (
+            (2, 'Images'),
+        )
+    }
+})
