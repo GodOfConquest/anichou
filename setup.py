@@ -10,7 +10,7 @@ setup(name='AniChou',
       packages=['AniChou'],
       package_dir={'AniChou': 'src/AniChou'},
       package_data={'AniChou': ['data/*']},
-      scripts=['src/anichou.py']
+      scripts=['src/anichou.py'],
       requires=[
           'kaa.metadata',
           'BeautifulSoup'
